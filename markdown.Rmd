@@ -1,0 +1,42 @@
+---
+title: "Rapid Assessment and ARU processing ~ Owls"
+author: "Jeremiah Kennedy"
+date: "11/13/2021"
+output: html_document
+---
+
+
+# Purpose of Script
+
+If you are looking to process larger volumes of ARU recording data for acoustically active species, this is the place to be. The point of this protocol is to provide an open access and easily personalizable series of scripts for visualy identifying and/or counting mid-frequency wildlife. 
+
+# Steps 
+
+1) Evaluate files
+2) Produce acoustic indices
+3) Evaluate indices visually
+4) Produce recording visualizations and metadata
+5) Process recordings visually
+
+
+# Scripts
+
+0_Recording_assessment_metadata_setup.R
+- 
+
+1_rename files.R
+-
+
+
+2_create_visualizations.PS1
+-
+
+
+# Steps and Scripts in detail
+
+
+
+
+
+
+
