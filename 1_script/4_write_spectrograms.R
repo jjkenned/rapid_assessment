@@ -7,8 +7,6 @@
 rm(list=ls())
 dev.off()
 
-# install packages
-install.packagesc("sound","tuneR","oce")
 
 # library required packages
 library(stringr)
@@ -92,7 +90,8 @@ get.specs<-function(chosen,form,grid_ref,Interval,out.root,height,width,spec.min
   
   print("Starting Loop")
   cat("\n")
-  # for loop for each site
+  
+  #for loop for each site
   site<-"NWTI-01-002"
   for (site in unique(chosen$site)){
     
@@ -184,7 +183,7 @@ get.specs<-function(chosen,form,grid_ref,Interval,out.root,height,width,spec.min
           section = Recs$Full[L]
           WAV = readWave(section, from=Start, to=End, units='seconds')
           WAV@left = WAV@left-mean(WAV@left)
-          sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
+          sound1 = spectro(WAV@, plot=F, ovlp=30, norm=F, wl=transf)
           
           
           
