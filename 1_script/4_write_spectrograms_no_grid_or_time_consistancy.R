@@ -116,13 +116,68 @@ chosen = ind_track[ind_track$Use=="y",]
 
 meta_3 = meta_2[meta_2$station_date %in% chosen$station_date,]
 
+## Make a file to process data in 
+# Get basename
+meta_3$base.name = basename(meta_3$file.name)
+proc_file = meta_3[c("base.name","Date","or.day","night.seq","prefix","time")]
+
+dat_pics = data.frame(matrix(NA,nrow = 0,ncol = 1))
+colnames(dat_pics) = "pic_name"
+
+meta_3 = meta_3[meta_3$prefix=="RAYBIRD3",]
+
+# 
+# # naming loop
+# for (site in unique(meta_3$prefix)){
+#   dir.out = paste0(out.root,site,"/")
+#   
+#   # Keep only appropriate site data
+#   dat_in = meta_3[meta_3$prefix==site,]
+#   
+#   for (i in 1:max(dat_in$night.seq)){
+#     
+#     dat_mid = dat_in[dat_in$night.seq==i,]
+#     
+#     dat_mid = dat_mid[order(dat_mid$or.day,decreasing = F),]
+#   
+#     
+#     # loop through 60 sec periods
+#     #k=2
+#     for (k in 1:(length(Breaks)-1)){
+#       
+#       Start = Breaks[k]
+#       End = Breaks[k+1]
+#       
+#       
+#       # create name for each time image
+#       
+#       name=paste0(site,"_",formatC(dat_mid$night.seq[1],width = 2,flag = 0),"_",formatC(Start, width = 3,flag = 0))
+#       name=paste(name,"jpeg",sep = ".")
+#       
+#       
+#       if (site == unique(meta_3$prefix)[1] & i==1 & k==1){
+#         
+#         dat_pics <-c(name)
+#         
+#       } else (dat_pics <- c(dat_pics,name))
+#       
+#     
+#       
+#       
+#     } 
+#     
+#   }
+# }
+
+
+# save
+# write.csv(dat_pics,file = "C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/Spectrograms/tracking.csv")
 
 # now we are ready for forming spectrograms
-
-
+# meta_3 = meta_3[substr(meta_3$prefix,1,7)=="SUNBIRD",]
 
 ###### Part 2 ~ Spectrogram Formation ####### 
-site = unique(meta_3$prefix)[1]
+# site = unique(meta_3$prefix)[1]
 for (site in unique(meta_3$prefix)){
   
   
@@ -137,7 +192,7 @@ for (site in unique(meta_3$prefix)){
   dat_in = meta_3[meta_3$prefix==site,]
   
   # Loop through sessions 
-  i=1
+  #i=1
   for (i in 1:max(dat_in$night.seq)){
     
     dat_mid = dat_in[dat_in$night.seq==i,]
@@ -147,7 +202,7 @@ for (site in unique(meta_3$prefix)){
     
     
     # loop through 60 sec periods
-    k=1
+    #k=1
     for (k in 1:(length(Breaks)-1)){
       
       Start = Breaks[k]
@@ -156,7 +211,7 @@ for (site in unique(meta_3$prefix)){
       
       # create name for each time image
     
-      name=paste0(site,"_",formatC(dat_mid$night.seq[1],digits = 1,flag = 0))
+      name=paste0(site,"_",formatC(dat_mid$night.seq[1],width = 2,flag = 0),"_",formatC(Start, width = 3,flag = 0))
       name=paste(name,"jpeg",sep = ".")
       
       
@@ -180,7 +235,7 @@ for (site in unique(meta_3$prefix)){
           
           imagep(x=sound1[[1]], y=sound1[[2]], z=t(sound1[[3]]), 
                  drawPalette=F, ylim=c(spec.min,spec.max), mar=rep(0,4), axes=F, col = rev(gray.colors(length(BinRange)-1, 0,0.9)), decimate=F)
-          text(x=3,y=300,dat_mid$or.day[L])
+          text(x=3,y=1,dat_mid$or.day[L])
           box()
           
         }
@@ -189,24 +244,16 @@ for (site in unique(meta_3$prefix)){
         
         
         
-        #
-        
-      }
-      
-        
-        
-        
-        
-      
-    print(paste0("Session ",i," of ", nrow(Sessions)," site ",site))
+    # Track sessions
+    print(paste0("Session ",i," of ", max(dat_in$night.seq)," site ",site))    
   }
+  
+  
   cat("\n")
   print(paste0(site,"-COMPLETE"))
-  cat("\n")
-      
-}
-    
-    
+  cat("\n")   
+  
+}   
 
   
   
