@@ -4,18 +4,18 @@
 
 
 # Re-set  your script when needed
-dev.off()
+# dev.off()
 rm(list=ls())
 
 # packages
 library(OpenImageR)
 
 ## Required settings ##
-dir_sep = "C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/RB03/index_nights" # where the files are kept
-dir_comb = "C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/Combined/RB03" # where the combined files are to go
-station = "RB03" # set station where recordings are from
-nights = 8 # number of nights/days to combine
-cols = 4 # number of columns to organize results into
+dir_sep = "C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/Check 2/SB02/index_nights" # where the files are kept
+dir_comb = "C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/Check 2/Combined/SB02" # where the combined files are to go
+station = "RB01" # set station where recordings are from
+nights = 18 # number of nights/days to combine
+cols = 3 # number of columns to organize results into
 
 
 # create directory for output
