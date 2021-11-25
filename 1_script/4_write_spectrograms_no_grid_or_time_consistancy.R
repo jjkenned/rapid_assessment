@@ -30,8 +30,8 @@ library(oce)
 
 
 # Set directories 
-in.root = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/Rayrock Bird Data - RAW" # recording files location
-out.root="C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/Spectrograms/" # output directory where results are kept
+in.root = "S:/ProjectScratch/398-173.07/ARUs - 2021/rw/210621_SE05" # recording files location
+out.root="C:/Users/jeremiah.kennedy/Documents/Working/SiteC_output/Spectrograms/" # output directory where results are kept
 
 # set required numbger of grid cells for reference
 ncells = 4
@@ -43,6 +43,10 @@ Interval=60 # interval of frame segments in seconds
 spec.max=10 # spectrogram max frequency in khz
 spec.min=0 # spectrogram min frequency in khz
 transf = 2048 # Forier transformation to use (wl in spectro function)
+
+# Let's check what we know about these recordings (SKIP IF YOU ALREADY KNOW)
+# 
+
 
 # the following can be set specifically in the loops if need be (see other write spectrograms scrpt)
 Length=3600 # total length of recording in seconds
