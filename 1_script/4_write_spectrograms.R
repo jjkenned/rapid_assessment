@@ -183,7 +183,7 @@ get.specs<-function(chosen,form,grid_ref,Interval,out.root,height,width,spec.min
           section = Recs$Full[L]
           WAV = readWave(section, from=Start, to=End, units='seconds')
           WAV@left = WAV@left-mean(WAV@left)
-          sound1 = spectro(WAV@, plot=F, ovlp=30, norm=F, wl=transf)
+          sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
           
           
           
