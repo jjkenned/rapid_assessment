@@ -74,7 +74,7 @@ meta$size = as.numeric(file.size(meta$file.name))
 
 
 # check
-good = meta[yday(meta$Date)==meta$or.day,]
+meta[!yday(meta$Date)==meta$or.day,]
 
 
 # Let's check what we know about these recordings (SKIP IF YOU ALREADY KNOW)
@@ -101,6 +101,8 @@ meta = meta[meta$size>0,]
 # Dplyr for ordering recordings within day 
 meta_2 = meta %>% group_by(station_date) %>% mutate(night.seq = order(time)) %>% arrange(station_date,night.seq) 
 
+write.csv(meta_2,file = "S:/ProjectScratch/398-173.07/ARUs - 2021/rw/jck_processing/full_meta.csv",row.names = F)
+
 
 ## Make a file to process data in 
 # Get basename
@@ -111,47 +113,47 @@ dat_pics = data.frame(matrix(NA,nrow = 0,ncol = 1))
 colnames(dat_pics) = "pic_name"
 
 
-# naming loop
-for (site in unique(meta_2$prefix)){
-  dir.out = paste0(out.root,site,"/")
-
-  # Keep only appropriate site data
-  dat_in = meta_2[meta_2$prefix==site,]
-
-  for (i in 1:max(dat_in$night.seq)){
-
-    dat_mid = dat_in[dat_in$night.seq==i,]
-
-    dat_mid = dat_mid[order(dat_mid$or.day,decreasing = F),]
-
-
-    # loop through 60 sec periods
-    #k=2
-    for (k in 1:(length(Breaks)-1)){
-
-      Start = Breaks[k]
-      End = Breaks[k+1]
-
-
-      # create name for each time image
-
-      name=paste0(site,"_",formatC(dat_mid$night.seq[1],width = 2,flag = 0),"_",formatC(Start, width = 3,flag = 0))
-      name=paste(name,"jpeg",sep = ".")
-
-
-      if (site == unique(meta_2$prefix)[1] & i==1 & k==1){
-
-        dat_pics <-c(name)
-
-      } else (dat_pics <- c(dat_pics,name))
-
-
-
-
-    }
-
-  }
-}
+# # naming loop
+# for (site in unique(meta_2$prefix)){
+#   dir.out = paste0(out.root,site,"/")
+# 
+#   # Keep only appropriate site data
+#   dat_in = meta_2[meta_2$prefix==site,]
+# 
+#   for (i in 1:max(dat_in$night.seq)){
+# 
+#     dat_mid = dat_in[dat_in$night.seq==i,]
+# 
+#     dat_mid = dat_mid[order(dat_mid$or.day,decreasing = F),]
+# 
+# 
+#     # loop through 60 sec periods
+#     #k=2
+#     for (k in 1:(length(Breaks)-1)){
+# 
+#       Start = Breaks[k]
+#       End = Breaks[k+1]
+# 
+# 
+#       # create name for each time image
+# 
+#       name=paste0(site,"_",formatC(dat_mid$night.seq[1],width = 2,flag = 0),"_",formatC(Start, width = 3,flag = 0))
+#       name=paste(name,"jpeg",sep = ".")
+# 
+# 
+#       if (site == unique(meta_2$prefix)[1] & i==1 & k==1){
+# 
+#         dat_pics <-c(name)
+# 
+#       } else (dat_pics <- c(dat_pics,name))
+# 
+# 
+# 
+# 
+#     }
+# 
+#   }
+# }
 
 
 # save
@@ -167,6 +169,8 @@ for (site in unique(meta_2$prefix)){
 # site = unique(meta_2$prefix)[1]
 for (site in unique(meta_2$prefix)){
   
+  # What site we working with 
+  print(paste0("started site ",site))
   
   # Create directory for site specs
   dir.out = paste0(out.root,site,"/")
@@ -182,6 +186,8 @@ for (site in unique(meta_2$prefix)){
   #i=1
   for (i in 1:max(dat_in$night.seq)){
     
+    print(paste0("recording sequence ID: ",i))
+    
     dat_mid = dat_in[dat_in$night.seq==i,]
     
     dat_mid = dat_mid[order(dat_mid$or.day,decreasing = F),]
@@ -196,19 +202,27 @@ for (site in unique(meta_2$prefix)){
       grp_night = all_nights[start_night:end_night]
       
       
-      dat_mid = dat_mid[dat_mid$or.day %in% grp_night,]
+      dat_ret = dat_mid[dat_mid$or.day %in% grp_night,]
+      
+      print("ordinal dates")
+      print(grp_night)
       
       # loop through 60 sec periods
       #k=1
       for (k in 1:(length(Breaks)-1)){
         
+        ### processing time
+        ptm = proc.time()
+        ### 
+        
+        # set start and end of segment within recordings
         Start = Breaks[k]
         End = Breaks[k+1]
         
         
         # create name for each time image
         
-        name=paste0(site,"_",formatC(dat_mid$night.seq[1],width = 2,flag = 0),"_",formatC(Start, width = 3,flag = 0))
+        name=paste0(site,"_","ses","_",formatC(dat_ret$night.seq[1],width = 2,flag = 0),"_nights_",j,"_",formatC(Start, width = 3,flag = 0))
         name=paste(name,"jpeg",sep = ".")
         
         
@@ -223,7 +237,8 @@ for (site in unique(meta_2$prefix)){
         # draw JPG Looping through 4 dates
         # L=1
         for(L in 1:ncells) {
-          section = dat_mid$file.name[L]
+          
+          section = dat_ret$file.name[L]
           WAV = readWave(section, from=Start, to=End, units='seconds')
           WAV@left = WAV@left-mean(WAV@left)
           sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
@@ -237,11 +252,15 @@ for (site in unique(meta_2$prefix)){
           
         }
         dev.off()
+        
+        print(proc.time() - ptm)
+        
       }
       
       
       
       # Track sessions
+      # 
       print(paste0("Session ",i," of ", max(dat_in$night.seq)," site ",site))    
     }
     
