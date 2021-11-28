@@ -11,6 +11,16 @@ library(tidyverse)
 library(seewave)
 library(lubridate)
 
+
+################
+### OPTION 1 ###
+################
+
+# combine processed species and frames output
+# from full comunity analysis 
+
+
+
 ## If data kept elsewhere
 # Read processed observation data
 obs = read.csv(file = "C:/Users/jeremiah.kennedy/Documents/Working/Rayrock Output/Spectrograms/tracking.csv")
@@ -182,6 +192,26 @@ days = ind_track %>% group_by(prefix) %>% summarise(first_day = min(Date),
 # get sixes of folder
 folders = unique(dir(meta$file.name,recursive = T,full.names = T,include.dirs = T))
 list.dirs(in.root)
+
+
+
+
+
+
+################
+### OPTION 2 ###
+################
+
+# combine meta data and frames for real time processing 
+# where required for tracking exact files to open
+
+
+
+
+
+
+
+
 
 
 
