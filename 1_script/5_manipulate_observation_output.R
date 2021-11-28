@@ -198,12 +198,103 @@ list.dirs(in.root)
 
 
 
+
+
+
+
 ################
 ### OPTION 2 ###
 ################
 
+
+
+
+
 # combine meta data and frames for real time processing 
 # where required for tracking exact files to open
+
+meta_2 = read.csv("S:/ProjectScratch/398-173.07/ARUs - 2021/rw/jck_processing/full_meta.csv")
+
+imgs = read.csv("S:/ProjectScratch/398-173.07/ARUs - 2021/rw/jck_processing/site_C_JPGs.csv")
+
+# manipulate for combining
+
+# clean and separate imgs
+colnames(imgs) = c("order_rem","img")
+
+# separate image back into it's base components 
+imgs$img_base = gsub(".jpeg","",imgs$img) # remove jpeg and create new ID from it to keep the origional ID 
+imgs_parts = separate(imgs,col = img_base, into = c("prefix","session_rem","session_ID","nights_rem","nights_ID","seconds"),sep = "_") # separate
+
+# now the 'SMART' part! 
+imgs_parts = imgs_parts[!grepl("rem",names(imgs_parts))] # remove all columns that contain 'rem'
+
+imgs_parts$session_ID = as.numeric(imgs_parts$session_ID)
+imgs_parts$nights_ID = as.numeric(imgs_parts$nights_ID)
+
+
+# need to keep in meta data
+keep = c("base.name","file.name","prefix","or.day","night.seq")
+meta = meta_2[keep]
+
+# change names etc
+colnames(meta) = c("base.name","file.name","prefix","or.day","session_ID","nights_ID")
+
+# group days into day groups 
+## CAUTION: CURRENTLY THIS ONLY WORKS IF YOU ARE ONLY WORKING ON ONE SITE
+all_nights = unique(meta$or.day)
+
+# order nights 
+meta$order = (meta$or.day - min(meta$or.day))+1
+
+
+j=1
+for (j in 1:floor((length(unique(dat_mid$or.day)))/ncells)){
+  
+  
+  start_night = (j-1)*4+1
+  end_night = start_night+3
+  grp_night = all_nights[start_night:end_night]
+  
+  
+  dat_ret = meta[meta$or.day %in% grp_night,]
+  
+  img_ret = imgs_parts[imgs_parts$session_ID %in% dat]
+  
+  
+  
+  if (j == 1){
+    
+    met_out = dat_ret
+    
+  } else (met_out = rbind(met_out,dat_ret))
+  
+  
+}
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
 
