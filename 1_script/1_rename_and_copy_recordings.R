@@ -15,18 +15,29 @@ library(stringr)
 
 # Specify directory where files are kept:
 
+orig_dir = "D:/MKVI/" # where files are kept and not modified
 
-
-orig_dir = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/Rayrock Bird Data - RAW/Check 2/SB02" # where files are kept and not modified
-
-cop_dir = "C:/Users/jeremiah.kennedy/Documents/Rayrock/Check 2/SB02/Data" # where files are copied to and modified there
+cop_dir = "D:/TEMP/MKVI/" # where files are copied to and modified there
 
 # create directory 
-dir.create(cop_dir,recursive = T)
+if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
+
 
 # Copy files
 files<-list.files(orig_dir,pattern = "*.wav",recursive = T,full.names = T) # list
-file.copy(files,cop_dir,recursive = T) # copy
+i=1
+for (i in 1:length(files)){
+  
+  new_dir = paste0(dirname(gsub(pattern = orig_dir,replacement = cop_dir,files[i])),"/")
+  
+  if(!dir.exists(new_dir)){dir.create(new_dir,recursive = T)}
+  
+  file.copy(files[i], new_dir, recursive = T) # copy
+  
+  if (i%%100==0){print(i)}
+  
+}
+
 
 # Set directory to where your recordings are
 setwd(cop_dir)

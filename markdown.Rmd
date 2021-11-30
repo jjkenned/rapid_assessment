@@ -22,14 +22,18 @@ If you are looking to process larger volumes of ARU recording data for acoustica
 # Scripts
 
 0_Recording_assessment_metadata_setup.R
+- Here you are simply visualizing the list of the recordings you have
+- Make sure that you save a copy of this list of files and file sizes, especially if there are a number of them (it will take a while)
+- This output is merely reference for future scripts, but can be used to sort files you don't want to include in various steps
+
+
+1_rename_and_copy_recordings.R
+- This is an essential step for the PowerShell script. you need to be able to reference the timezone in your filename for the powershell script to work
+- If you are running this on non-continuous recordings, this step can also be used to 'fake' a continuous recording schedule
+
+
+2_Acoustic_Indices_By_Station.ps1
 - 
-
-1_rename files.R
--
-
-
-2_create_visualizations.PS1
--
 
 
 # Steps and Scripts in detail
