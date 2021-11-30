@@ -184,7 +184,7 @@ for (site in unique(meta_2$prefix)){
   
   # Loop through sessions 
   #i=1
-  for (i in 1:max(dat_in$night.seq)){
+  for (i in 2:max(dat_in$night.seq)){
     
     print(paste0("recording sequence ID: ",i))
     
@@ -194,10 +194,13 @@ for (site in unique(meta_2$prefix)){
     
     all_nights = unique(dat_mid$or.day)
     
-   # j = 2
-    for (j in 1:floor((length(unique(dat_mid$or.day)))/ncells)){
+    
+    
+    # Loop through recording nights 
+    # j = 1
+    for (j in 1:12){
       
-      start_night = (j-1)*4+1
+      start_night = ((j-1)*4)+1
       end_night = start_night+3
       grp_night = all_nights[start_night:end_night]
       
@@ -223,6 +226,7 @@ for (site in unique(meta_2$prefix)){
         # create name for each time image
         
         name=paste0(site,"_","ses","_",formatC(dat_ret$night.seq[1],width = 2,flag = 0),"_nights_",j,"_",formatC(Start, width = 3,flag = 0))
+        
         name=paste(name,"jpeg",sep = ".")
         
         
@@ -238,17 +242,33 @@ for (site in unique(meta_2$prefix)){
         # L=1
         for(L in 1:ncells) {
           
-          section = dat_ret$file.name[L]
-          WAV = readWave(section, from=Start, to=End, units='seconds')
-          WAV@left = WAV@left-mean(WAV@left)
-          sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
           
-          BinRange=seq(0,70,1)
           
-          imagep(x=sound1[[1]], y=sound1[[2]], z=t(sound1[[3]]), 
-                 drawPalette=F, ylim=c(spec.min,spec.max), mar=rep(0,4), axes=F, col = rev(gray.colors(length(BinRange)-1, 0,0.9)), decimate=F)
-          text(x=3,y=1,dat_mid$or.day[L])
-          box()
+          section = dat_ret$file.name[L] # Identify file name required here
+          
+          # deal with missing components 
+          
+          try({
+            
+            WAV = readWave(section, from=Start, to=End, units='seconds')
+            WAV@left = WAV@left-mean(WAV@left)
+            sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
+            
+            BinRange=seq(0,70,1)
+            
+            imagep(x=sound1[[1]], y=sound1[[2]], z=t(sound1[[3]]), 
+                   drawPalette=F, ylim=c(spec.min,spec.max), mar=rep(0,4), axes=F, col = rev(gray.colors(length(BinRange)-1, 0,0.9)), decimate=F)
+            text(x=3,y=1,grp_night[L])
+            box()
+            
+            
+            
+            
+          },silent = TRUE)
+          
+          
+          
+          
           
         }
         dev.off()
@@ -264,22 +284,18 @@ for (site in unique(meta_2$prefix)){
       print(paste0("Session ",i," of ", max(dat_in$night.seq)," site ",site))    
     }
     
-      
-      
-      
-      
-    }
     
+    
+    
+    
+  }
+  
   
   cat("\n")
   print(paste0(site,"-COMPLETE"))
   cat("\n")   
   
 }   
-
-  
-  
-  
 
 
 

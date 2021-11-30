@@ -13,6 +13,13 @@ dev.off()
 rm(list=ls())
 library(stringr)
 
+
+##############################
+#### Part 1 ~ Copy Files######
+##############################
+
+
+
 # Specify directory where files are kept:
 
 orig_dir = "D:/MKVI/" # where files are kept and not modified
@@ -39,9 +46,62 @@ for (i in 1:length(files)){
 }
 
 
+##############################
+#### Part 2 ~ Name Files######
+##############################
+
+# Specify directory 
+cop_dir = "D:/TEMP/MKVI/" # where files are copied to and modified there
+
 # Set directory to where your recordings are
 setwd(cop_dir)
 
 file.rename(list.files(pattern = "*.wav"), str_replace(list.files(pattern = "*.wav"),pattern = ".wav",replacement = "-0700.wav"))
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
 
 
