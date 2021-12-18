@@ -17,11 +17,11 @@ library(tidyverse)
 
 
 ## Required settings ##
-dir_sep = "D:/TEMP/LDFS/by night/" # where the files are kept
-dir_comb = "D:/TEMP/LDFS/Combined/" # where the combined files are to go
-station = "MKVI-U03-010" # set station where recordings are from
-nights = 35 # number of nights/days to combine
-cols = 7 # number of columns to organize results into
+dir_sep = "D:/TEMP/MUCH/LDFS/combined/" # where the files are kept
+dir_comb = "D:/TEMP/MUCH/LDFS/Full_LDFS/" # where the combined files are to go
+station = "MUCH-003" # set station where recordings are from
+nights = 32 # number of nights/days to combine
+cols = 8 # number of columns to organize results into
 
 
 # create directory for output
@@ -29,7 +29,7 @@ dir.create(paste0(dir_comb),recursive = T)
 
 # list in files to make into jpg
 img<-list.files(path = paste0(dir_sep,station),pattern = "*2Maps.png",recursive = T,full.names = T)
-
+img = img[file.size(img)>80000]
 
 # create the name to be given to the file being written
 out.name=file.path(dir_comb,paste0(station,"_indices_grid",".jpg"))
@@ -44,7 +44,7 @@ layout(matrix(1:nights, ncol=cols, byrow=TRUE)) # set layout of your plots depen
 # i=1
 for(i in 1:length(img)) { # complete for all images in list-img
   # subset to get night ID (ynight)
-  id<-basename(dirname(img[i])) # personalize depending on name
+  id<-substr(basename(img[i]),19,26) # personalize depending on name
   plot(NA,xlim=0:1,ylim=0:1, bty="n", xaxt='n', yaxt='n') # get rid of xy values and marks
   rasterImage(readImage(img[i]),0,0,1,1) # print image
   text(x=0.2,y=0.9,labels = id,col="white",cex=0.15)

@@ -15,6 +15,7 @@ library(stringr)
 library(tidyverse)
 library(av)
 library(chron)
+library(seewave)
 
 ##############################
 #### Part 1 ~ Copy Files######
@@ -24,9 +25,9 @@ library(chron)
 
 # Specify directory where files are kept:
 
-orig_dir = "D:/MKVI/" # where files are kept and not modified
+orig_dir = "D:/MUCH/" # where files are kept and not modified
 
-cop_dir = "D:/TEMP/MKVI/" # where files are copied to and modified there
+cop_dir = "D:/TEMP/MUCH/" # where files are copied to and modified there
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
@@ -53,10 +54,15 @@ for (i in 1:length(files)){
 ##############################
 
 # Specify directory 
-cop_dir = "D:/TEMP/" # where files are copied to and modified there
+cop_dir = "D:/TEMP/MUCH" # where files are copied to and modified there
 
 # Set directory to where your recordings are
 setwd(cop_dir)
+
+dat = data.frame(Full = list.files(cop_dir,pattern = "*.wav",recursive = T,full.names = T))
+dat$new.name = paste0(cop_dir,"/",basename(dat$Full))
+
+file.rename(from = dat$Full,to=dat$new.name)
 
 file.rename(list.files(pattern = "*.wav",recursive = T), str_replace(list.files(pattern = "*.wav",recursive = T),pattern = ".wav",replacement = "-0700.wav"))
 
@@ -81,7 +87,7 @@ keep = c("Full","name","station","time","year","month","day","hour","min","sec")
 files = Meta[keep]
 
 
-###### DON'T FUCK WITH FUCKING DATES ###### 
+###### Dates are frustrating ###### 
 
 # let's do it the hard way !
 file.grps = files %>% group_by(station,year,month,day) %>% mutate(group_id = cur_group_id()) # group by date
@@ -100,6 +106,7 @@ d2n.func = function(day,hr,split){
 
 # apply function accross the dataframe 
 file.grps$night.ID = mapply(d2n.func,file.grps$group_id,file.grps$hour,12) 
+
 plot(file.grps$group_id,file.grps$night.ID) # visualize to make sure it makes sense
 
 # Make new name column for renaming

@@ -64,9 +64,9 @@ param(
 # Directories and naming
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
-Set-Location -Path "C:\"
-$input_directories = Get-Childitem -Path "D:\TEMP\MKVI\2021\MKVI-U02" 
-$output_directories = "D:\TEMP\LDFS\by night\" # output directory 
+Set-Location -Path "D:\"
+$input_directories = Get-Childitem -Path "D:\MUCH" 
+$output_directories = "D:\TEMP\MUCH\LDFS\by night\" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -109,7 +109,7 @@ foreach ($input_directory in $input_directories) {
         
         # for more information on how this command works, please see:
         # https://ap.qut.ecoacoustics.info/technical/commands/analyze_long_recording.html
-        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.yml" "$output_directory/by_rec/$current_group/$name" --no-debug --parallel 
+        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.owl.justin.yml" "$output_directories/by_rec/$current_group/$name" --no-debug --parallel 
 
     
     
