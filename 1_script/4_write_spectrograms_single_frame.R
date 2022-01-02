@@ -33,25 +33,14 @@ library(viridis)
 
 
 # Set directories 
-in.root = "D:/MKVI/" # recording files location
-out.root="D:/Spectrograms/" # output directory where results are kept
-
-## Additional input directory options
-# multiple (but not all) sub-directories 
-# subs = c("210621_SE05","210716_2536_SE05","SM4") # list subdirectories
-# in.roots = paste0(in.root,subs) # paste to make full directories 
-
-
-# set required numbger of grid cells for reference
-ncells = 4
-width<-2
-height<-2
+in.root = "D:/TEMP/trial/recs" # recording files location
+out.root="D:/TEMP/trial/spectrograms/" # output directory where results are kept
 
 # Sound segment selection settings
 Interval=60 # interval of frame segments in seconds
-spec.max=2.5 # spectrogram max frequency in khz
+spec.max=2 # spectrogram max frequency in khz
 spec.min=0 # spectrogram min frequency in khz
-transf = 2200 # Forrier transformation to use (wl in spectro function)
+transf = 4096 # Forrier transformation to use (wl in spectro function)
 
 
 # Get files
@@ -75,6 +64,7 @@ night.use = read.csv(file = "D:/TEMP/LDFS/Combined/processing_nights_updated.csv
 
 # if you have survey night data from playbck sessions, include it here
 playback = read_xlsx(path = "S:/Projects/106381-01/06 Data/HSP&PMRA/Playback_Surveys/2021/MKVI_2021_Visit_Data.xlsx",sheet = 1)
+
 
 # let's use these to filter our data
 # remove what isnt required 
@@ -165,10 +155,6 @@ meta = meta[meta$station.night %in% uses$station.night,]
 
 av_media_info(meta$full[1])
 
-# the following can be set specifically in the loops if need be (see other write spectrograms scrpt)
-Length=180 # total length of recording in seconds
-Breaks=seq(0,Length,Interval) # sequence of break locations 
-
 
 
 
@@ -193,14 +179,19 @@ proc_file = meta_2[c("base.name","date","or.night","night.seq","prefix","time")]
 dat_pics = data.frame(matrix(NA,nrow = 0,ncol = 1))
 colnames(dat_pics) = "pic_name"
 
+# the following can be set specifically in the loops if need be (see other write spectrograms scrpt)
+Length=180 # total length of recording in seconds
+Breaks=seq(0,Length,Interval) # sequence of break locations 
+
+
+
+
 # real naming loop
 # site = unique(meta_2$prefix)[1]
 for (site in unique(meta_2$prefix)){
   
-  # Create directory for site specs
-  dir.out = paste0(out.root,site,"/")
   
-  # Keep only appropriate site dataa
+  # Keep only appropriate site data
   dat_in = meta_2[meta_2$prefix==site,]
   
   all_nights = unique(dat_in$or.night)
@@ -214,17 +205,20 @@ for (site in unique(meta_2$prefix)){
     
     dat_ret = dat_in[dat_in$or.night %in% grp_night,]
     
+    # Create directory for every night spectrograms to be kept
+    dir.out = paste0(out.root,site,"/",grp_night,"/")
     
-    # through sessions within night in groups of 4
-    # i = seq(1,nrow(dat_ret),4)[1]
-    for (i in seq(1,nrow(dat_ret),4)){
+    
+    # Loop through sessions within each night 
+    i=1
+    for (i in 1:nrow(dat_ret)){
       
-      dat_use = dat_ret[i:(i+3),]
+      dat_use = dat_ret[i,]
       
       
       
       
-      # loop through 30 sec periods
+      # loop through window length periods
       # k=1
       for (k in 1:(length(Breaks)-1)){
         
@@ -239,9 +233,9 @@ for (site in unique(meta_2$prefix)){
         
         # create name for each time image
         
-        name=paste0(site,"_","ses","_",formatC(dat_use$night.seq[1],width = 2,flag = 0),"_night_",all_nights[j],"_",formatC(Start, width = 3,flag = 0))
+        name=paste0(gsub(pattern = "*.wav",replacement = "",x = dat_use$base.name),"_",formatC(Start, width = 3,flag = 0))
         
-        name=paste(name,"jpeg",sep = ".")
+        name=paste(name,"jpg",sep = ".")
         
         
         
@@ -318,13 +312,7 @@ for (site in unique(meta_2$prefix)){
 for (site in unique(meta_2$prefix)){
   
   # What site we working with 
-  print(paste0("started site ",site))
-  
-  # Create directory for site specs
-  dir.out = paste0(out.root,site,"/")
-  if(!dir.exists(dir.out)){
-    dir.create(dir.out,recursive = T)
-  } 
+  print(paste0("started site ~ ",site))
   
   
   # Keep only appropriate site data
@@ -344,11 +332,17 @@ for (site in unique(meta_2$prefix)){
       print("ordinal dates")
       print(unique(dat_ret$or.day))
       
+      
+      # Create directory for site specs
+      dir.out = paste0(out.root,site,"/",grp_night,"/")
+      if(!dir.exists(dir.out)){
+        dir.create(dir.out,recursive = T)
+      } 
+      
       # through sessions within night
-      # i=seq(1,nrow(dat_ret),4)[8]
-      for (i in seq(1,nrow(dat_ret),4)){
+      for (i in 1:nrow(dat_ret)){
         
-        dat_use = dat_ret[i:(i+3),]
+        dat_use = dat_ret[i,]
         
         
         
@@ -367,56 +361,43 @@ for (site in unique(meta_2$prefix)){
           
           # create name for each time image
           
-          name=paste0(site,"_","ses","_",formatC(dat_use$night.seq[1],width = 2,flag = 0),"_night_",all_nights[j],"_",formatC(Start, width = 3,flag = 0))
+          name=paste0(gsub(pattern = "*.wav",replacement = "",x = dat_use$base.name),"_",formatC(Start, width = 3,flag = 0))
           
-          name=paste(name,"jpeg",sep = ".")
+          name=paste(name,"jpg",sep = ".")
           
           
           
           # create jpeg with "name" and specify size
-          jpeg(paste0(dir.out,name), width=13, height=8, units='in', res=1500)
-          par(mfrow=c(height,width)) 
+          jpeg(paste0(dir.out,name), width=13, height=8, units='in', res=500)
           par(mar=rep(0,4))
           
+          # 
+          
+          section = dat_use$file.name # Identify file name required here
+          
+          framename = substr(dat_use$base.name,14,28)
+          
+          framename = paste0(framename," + ",Start)
           
           
-          # draw JPG Looping through 4 dates
-          # L=1
-          for(L in 1:ncells) {
+          try({
+            
+            WAV = readWave(section, from=Start, to=End, units='seconds')
+            WAV@left = WAV@left-mean(WAV@left)
+            sound1 = spectro(WAV, plot=F, ovlp=10, norm=F, wl=transf)
             
             
-            
-            section = dat_use$file.name[L] # Identify file name required here
-            
-            framename = substr(dat_use$base.name[L],18,32)
-            
-            framename = paste0(framename," + ",Start)
-            
-            # deal with missing components 
-            
-            try({
-              
-              WAV = readWave(section, from=Start, to=End, units='seconds')
-              WAV@left = WAV@left-mean(WAV@left)
-              sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
-              
-              
-              
-              imagep(x=sound1[[1]], y=sound1[[2]], z=t(sound1[[3]]), 
-                     drawPalette=F, ylim=c(spec.min,spec.max), mar=rep(0,4), axes=F, col = magma(150, begin = 0,end = 0.75), decimate=F)
-              text(x=4,y=2,framename)
-              box()
-              
-              
-              
-              
-            },silent = TRUE)
+            imagep(x=sound1[[1]], y=sound1[[2]], z=t(sound1[[3]]), 
+                   drawPalette=F, ylim=c(spec.min,spec.max), mar=rep(0,4), axes=F, col = magma(150, begin = 0,end = 1), decimate=F)
+            text(x=5,y=1.9,framename)
+            box()
             
             
             
             
-            
-          }
+          },silent = TRUE)
+          
+          
           dev.off()
           
           print(proc.time() - ptm)

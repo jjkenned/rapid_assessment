@@ -1,5 +1,5 @@
 
-site = unique(meta_2$prefix)[1]
+# site = unique(meta_2$prefix)[1]
 for (site in unique(meta_2$prefix)){
   
   # Create directory for site specs
@@ -21,24 +21,25 @@ for (site in unique(meta_2$prefix)){
     
   
     # through sessions within night in groups of 4
-    # i= seq(1,nrow(dat_ret),4)[1]
-    for (i in seq(1,nrow(dat_ret)),4)){
+    # i = seq(1,nrow(dat_ret),4)[1]
+    for (i in seq(1,nrow(dat_ret),4)){
       
       dat_use = dat_ret[i:(i+3),]
       
-      
+    
+
       
       # loop through 30 sec periods
       # k=1
       for (k in 1:(length(Breaks)-1)){
         
-        ### processing time
-        ptm = proc.time()
-        ### 
-        
+       
         # set start and end of segment within recordings
         Start = Breaks[k]
         End = Breaks[k+1]
+        
+        # now we have times we can use to assign names and lables
+        
         
         
         # create name for each time image
@@ -48,68 +49,62 @@ for (site in unique(meta_2$prefix)){
         name=paste(name,"jpeg",sep = ".")
         
         
-        
+          
         # draw JPG Looping through 4 recordings 
         # L=1
         for(L in 1:ncells) {
           
+          section = dat_use$file.name[L] # Identify file name required here
           
           
-          section = dat_use$full[L] # Identify file name required here
-          
-          # deal with missing components 
-          
-          try({
-            
-            WAV = readWave(section, from=Start, to=End, units='seconds')
-            WAV@left = WAV@left-mean(WAV@left)
-            sound1 = spectro(WAV, plot=F, ovlp=30, norm=F, wl=transf)
-            
-            BinRange=seq(0,70,1)
-            
-            imagep(x=sound1[[1]], y=sound1[[2]], z=t(sound1[[3]]), 
-                   drawPalette=F, ylim=c(spec.min,spec.max), mar=rep(0,4), axes=F, col = rev(gray.colors(length(BinRange)-1, 0,0.9)), decimate=F)
-            text(x=3.1,y=2.4,dat_ret$time[L])
-            box()
-            
-            
-            
-            
-          },silent = TRUE)
           
           
+          if (L==1){
+            
+            subq=data.frame(section)
+          
+          } else (subq[1,L] = section)
+          
+          # calculate new time of image frame 
+          # rec = substr(dat_use$base.name[L],18,32)
+          # seconds = Start
           
           
           
         }
-        dev.off()
+       
+        subq[1,(ncol(subq)+1)]=name
         
-        print(proc.time() - ptm)
+        # back out of the loop again
+        colnames(subq) <- c("rec_1","rec_2","rec_3","rec_4","img")
+        
+        
+        
+        if (k == 1){
+          
+          quantum = subq
+          
+        } else (quantum=rbind(quantum,subq))
+        
+        
+     
         
       }
       
-      
+    if (i==1){supq = quantum} else (supq = rbind(supq,quantum))  
       
     }
     
-    
-    
-    
-    # Track sessions
-    # 
-    print(paste0("Session ",i," of ", max(dat_in$night.seq)," site ",site))    
+    if (j==1){dat_out = supq}else(dat_out = rbind(dat_out,supq))
+
   }
   
   
+  if (site == unique(meta_2$prefix)[1]){finally=dat_out}else(finally=rbind(finally,dat_out))
   
-  
-  
+  print(site)
 }
 
 
-cat("\n")
-print(paste0(site,"-COMPLETE"))
-cat("\n")   
 
-}   
 
