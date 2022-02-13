@@ -64,9 +64,9 @@ param(
 # Directories and naming
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
-Set-Location -Path "D:\"
-$input_directories = Get-Childitem -Path "D:\MUCH" 
-$output_directories = "D:\TEMP\MUCH\LDFS\by night\" # output directory 
+Set-Location -Path "S:\ProjectScratch\398-173.07\PMRA_WESOke\"
+$input_directories = Get-Childitem -Path "S:\ProjectScratch\398-173.07\PMRA_WESOke\process\MKSC\MKSC-U01" 
+$output_directory = "S:\ProjectScratch\398-173.07\PMRA_WESOke\indices\MKSC\MKSC-U01" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -81,8 +81,8 @@ $ErrorActionPreference = "Stop"
 $ap_path = "C:\AP"
 $default_configs = Resolve-Path "$ap_path\ConfigFiles"
 
-# skip the loop to check how it works
-#  $input_directory = Get-Childitem -Path $input_directories
+# check how it works
+# $input_directory = $input_directories[1]
 
 foreach ($input_directory in $input_directories) {
     Write-Output "Processing $input_directory"
@@ -97,7 +97,7 @@ foreach ($input_directory in $input_directories) {
 
     $counter = 0;
     # bring out of this loop as well to deal with error
-    # $file = $filtered_files[2]
+    # $file = $filtered_files[1]
 
     foreach ($file in $filtered_files) {
         $counter++
@@ -109,7 +109,7 @@ foreach ($input_directory in $input_directories) {
         
         # for more information on how this command works, please see:
         # https://ap.qut.ecoacoustics.info/technical/commands/analyze_long_recording.html
-        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.owl.justin.yml" "$output_directories/by_rec/$current_group/$name" --no-debug --parallel 
+        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.yml" "$output_directory/by_rec/$current_group/$name" --no-debug --parallel 
 
     
     
@@ -120,8 +120,8 @@ foreach ($input_directory in $input_directories) {
     # for more information on how this command works, please see:
     # https://ap.qut.ecoacoustics.info/technical/commands/concatenate_index_files.html
     C:\AP\AnalysisPrograms.exe ConcatenateIndexFiles `
-        --input-data-directory "$output_directory/by_rec" `
-        --output-directory "$output_directory/by_day" `
+        --input-data-directory "$output_directory/by_rec/$current_group" `
+        --output-directory "$output_directory/by_night" `
         -z $time_zone_offset `
         --file-stem-name $current_group `
         --directory-filter "*.*" `

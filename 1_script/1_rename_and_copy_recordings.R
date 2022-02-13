@@ -25,9 +25,9 @@ library(seewave)
 
 # Specify directory where files are kept:
 
-orig_dir = "D:/MUCH/" # where files are kept and not modified
+orig_dir = "S:/ProjectScratch/398-173.07/PMRA_WESOke/recordings/MKSC" # where files are kept and not modified
 
-cop_dir = "D:/TEMP/MUCH/" # where files are copied to and modified there
+cop_dir = "S:/ProjectScratch/398-173.07/PMRA_WESOke/process/MKSC" # where files are copied to and modified there
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
@@ -35,18 +35,38 @@ if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
 
 # Copy files
 files<-list.files(orig_dir,pattern = "*.wav",recursive = T,full.names = T) # list
-i=1
-for (i in 1:length(files)){
+
+# New directory copy function
+move_rec = function(orig_dir,cop_dir,files){
   
-  new_dir = paste0(dirname(gsub(pattern = orig_dir,replacement = cop_dir,files[i])),"/")
+  new_dir = paste0(dirname(gsub(pattern = orig_dir,replacement = cop_dir,files)),"/")
   
   if(!dir.exists(new_dir)){dir.create(new_dir,recursive = T)}
   
-  file.copy(files[i], new_dir, recursive = T) # copy
-  
-  if (i%%100==0){print(i)}
+  file.copy(files, new_dir, recursive = T) # copy
   
 }
+
+lapply(files, FUN = function(x) 
+  move_rec(orig_dir = orig_dir,cop_dir = cop_dir,files = x))
+
+
+
+# i=1
+
+# 
+# 
+# for (i in 1:length(files)){
+#   
+#   new_dir = paste0(dirname(gsub(pattern = orig_dir,replacement = cop_dir,files[i])),"/")
+#   
+#   if(!dir.exists(new_dir)){dir.create(new_dir,recursive = T)}
+#   
+#   file.copy(files[i], new_dir, recursive = T) # copy
+#   
+#   if (i%%100==0){print(i)}
+#   
+# }
 
 
 ##############################
@@ -54,17 +74,16 @@ for (i in 1:length(files)){
 ##############################
 
 # Specify directory 
-cop_dir = "D:/TEMP/MUCH" # where files are copied to and modified there
+# cop_dir = "D:/TEMP/MUCH" # where files are copied to and modified there
 
 # Set directory to where your recordings are
 setwd(cop_dir)
 
 dat = data.frame(Full = list.files(cop_dir,pattern = "*.wav",recursive = T,full.names = T))
-dat$new.name = paste0(cop_dir,"/",basename(dat$Full))
 
-file.rename(from = dat$Full,to=dat$new.name)
+# file.rename(from = dat$Full,to=dat$new.name)
 
-file.rename(list.files(pattern = "*.wav",recursive = T), str_replace(list.files(pattern = "*.wav",recursive = T),pattern = ".wav",replacement = "-0700.wav"))
+# file.rename(list.files(pattern = "*.wav",recursive = T), str_replace(list.files(pattern = "*.wav",recursive = T),pattern = ".wav",replacement = "-0700.wav"))
 
 
 # Next step is to change percieved time for binding
@@ -76,8 +95,17 @@ file.rename(list.files(pattern = "*.wav",recursive = T), str_replace(list.files(
 files = data.frame(Full = list.files(cop_dir,pattern = "*.wav",recursive = T,full.names = T))
 files$name = basename(files$Full)
 
+
+### comment ####
+# Make sure you use the songmeter command on your basename and not the full filename
+# The command get's confused with the full path
+
+
+
+
+
 # extract metadata
-Meta = songmeter(files$Full)
+Meta = songmeter(files$name)
 Meta$Full = files$Full # transfer full name to new DF
 Meta$name = files$name # transfer basename
 Meta$station = basename(Meta$prefix) # get rid of some dumn parent directories 
@@ -112,9 +140,13 @@ plot(file.grps$group_id,file.grps$night.ID) # visualize to make sure it makes se
 # Make new name column for renaming
 # you will need to remove some things before processing anyway if this is an SM3 set of recordings 
 
-file.grps$new_name = gsub(pattern = "*_0\\+1_*",replacement = "_",file.grps$name) # SM3s can get merked 
 
-# Now we can loop through the files to rename their asses!! 
+
+### SongMeter 3 Only #### 
+# file.grps$new_name = gsub(pattern = "*_0\\+1_*",replacement = "_",file.grps$name) # SM3s can get merked 
+
+
+# Now we can loop through the files to rename
 # You will need to start by setting the start time you wanna use
 start.hr = 8
 start.min = 0
@@ -160,14 +192,14 @@ for (night in unique(file.grps$night.ID)){
   # save as some other dataframe  
   if (night == unique(file.grps$night.ID)[1]) {dat_out = night_dat} else (dat_out = rbind(dat_out,night_dat))
   
-  print(paste0("complete night ",night," of ",max(unique(file.grps$night.ID)))) # nights may not line up proppertly 
+  print(paste0("complete night ",night," of ",max(unique(file.grps$night.ID)))) # nights may not line up propperly 
   
 }
 
 
-# Let's fucking get it going 
+ 
 
-
+# manually recreate the names based on recording times etc
 dat_out$new_name_final = paste0(dat_out$station,"_",dat_out$year,
                                 formatC(dat_out$month,width = 2,flag = 0),
                                 formatC(dat_out$day,width = 2,flag = 0),"_",
