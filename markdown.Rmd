@@ -8,7 +8,7 @@ output: html_document
 
 # Purpose of Script
 
-If you are looking to process larger volumes of ARU recording data for acoustically active species, this is the place to be. The point of this protocol is to provide an open access and easily personalizable series of scripts for visualy identifying and/or counting mid-frequency wildlife. 
+If you are looking to process larger volumes of ARU recording data for acoustically active species, this is the place to be. The point of this protocol and these scripts is to provide an open access and easy to personalize tool for identifying and counting sonic wildlife.This process works best for smaller groups of species or 'acoustic clades' (eg. owls, grouse, high-singing warblers, woodpeckers, nocturnal birds), but can be personalized to just about any time frame and frequency range that a researcher is interested in. 
 
 # Steps 
 

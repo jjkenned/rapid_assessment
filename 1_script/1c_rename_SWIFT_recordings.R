@@ -1,5 +1,5 @@
 #######################################################################################
-########### Re-name files for processing in Analysis Programs script ##################
+########### Re-name SWIFT files for processing in Analysis Programs script ############
 #######################################################################################
 
 ## IMPORTANT ~ READ BEFORE RUNNING Script ##
@@ -27,16 +27,37 @@ library(seewave)
 
 # Specify directory where files are kept:
 
-orig_dir = "E:/recordings/BIRD/2022/MKVI" # where files are kept and not modified
-
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI" # where files are copied to and modified there
+orig_dir = "F:/processing/trimmed_recordings/BIRD/2022/REN" # where files are kept and not modified
+cop_dir = "F:/processing/copied_recordings/BIRD/2022/REN" # where files are copied to and modified there
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
 
 
-# Copy files
+# List files
 files<-list.files(orig_dir,pattern = ".wav",recursive = T,full.names = T) # list
+
+## SWIFT specific Section 
+# List all files in directories and remove anything from the base file name that isn't x folders deep
+files=data.frame(full=files)
+files$name = basename(files$full) # get file name
+files$station = substr(files$name,1,6)
+
+# now build directory
+files$new.dir = paste0(cop_dir,"/",files$station,"/",files$name)
+
+for (i in 1:nrow(files)){
+  
+  if(!dir.exists(dirname(files$new.dir[i]))){dir.create(dirname(files$new.dir[i]))}
+  
+  file.rename(from = files$full[i], to = files$new.dir[i])
+  
+  
+  if (i%%100==0){print(i)}
+  
+}
+
+
 
 # New directory copy function
 move_rec = function(orig_dir,cop_dir,files){
@@ -49,8 +70,8 @@ move_rec = function(orig_dir,cop_dir,files){
   
 }
 
-lapply(files, FUN = function(x) 
-  move_rec(orig_dir = orig_dir,cop_dir = cop_dir,files = x))
+#lapply(files, FUN = function(x) 
+ # move_rec(orig_dir = orig_dir,cop_dir = cop_dir,files = x))
 
 
 
@@ -89,9 +110,11 @@ files$name = basename(files$Full)
 # Make sure you use the songmeter command on your basename and not the full filename
 # The command get's confused with the full path
 
+## replace "_" with "-"
+#substr(files$name,4,4)="-"
+#files$new.name = paste0(dirname(files$Full),"/",files$name)
 
-
-
+#file.rename(from = files$Full,to = files$new.name)
 
 # extract metadata
 Meta = songmeter(files$name)
@@ -171,7 +194,7 @@ for (night in unique(file.grps$night.ID)){
       night_dat$year[i]=night_dat$year[1]
       night_dat$month[i]=night_dat$month[1]
       night_dat$day[i]=night_dat$day[1]
-      }
+    }
     
     
   }
@@ -179,12 +202,11 @@ for (night in unique(file.grps$night.ID)){
   # save as some other dataframe  
   if (night == unique(file.grps$night.ID)[1]) {dat_out = night_dat} else (dat_out = rbind(dat_out,night_dat))
   
-  print(paste0("complete night ",night," of ",max(unique(file.grps$night.ID)))) # nights may not line up propperly 
+  print(paste0("complete night ",night," of ",max(unique(file.grps$night.ID)))) # nights may not line up properly 
   
 }
 
 
- 
 
 # manually recreate the names based on recording times etc
 dat_out$new_name_final = paste0(dat_out$station,"_",dat_out$year,
@@ -204,8 +226,14 @@ dat_out$new_name_final = gsub(pattern = "*_0\\+1_*",replacement = "_",dat_out$ne
 dat_out$new.Full = paste0(dirname(dat_out$Full),"/",dat_out$new_name_final)
 
 
+# check if you have extras
+dat_check = dat_out[nchar(dat_out$new.Full) > nchar(dat_out$new.Full[1]),]
+
+# remove if you need to
+dat_return = dat_out[!dat_out$new.Full %in% dat_check$new.Full,]
+
 # Rename everything 
-file.rename(from = dat_out$Full, to = dat_out$new.Full)
+file.rename(from = dat_return$Full, to = dat_return$new.Full)
 
 
 

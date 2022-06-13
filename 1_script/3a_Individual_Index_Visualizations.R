@@ -17,12 +17,12 @@ library(tidyverse)
 
 
 ## Required settings ##
-dir_sep = "S:/ProjectScratch/398-173.07/PMRA_WESOke/indices/MKSC/MKSC-U01/by_night" # where the files are kept
-dir_return = "S:/ProjectScratch/398-173.07/PMRA_WESOke/indices/MKSC/MKSC-U01/only_visualizations" # where the combined files are to go
+dir_sep = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U22" # where the files are kept
+dir_return = "E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U22" # where the combined files are to go
 
 # list in files to make into jpg
-img<-list.files(path = paste0(dir_sep),pattern = "*2Maps.png",recursive = T,full.names = T)
-img = img[file.size(img)>80000]
+img<-list.files(path = dir_sep,pattern = "2Maps.png",recursive = T,full.names = T)
+# img = img[file.size(img)>80000]
 
 # set file path for keeping the images in a place that can be referenced by the timelapse database
 imgs = data.frame(full.name = img) # turn into dataframe
@@ -32,7 +32,7 @@ imgs$date = basename(imgs$full.directory) # date for name
 imgs$station = basename(dirname(imgs$full.directory)) # station ID for reference
 
 # Make new dir name from extracted info
-imgs$new.dir = gsub("by_night","only_visualizations",dirname(imgs$full.directory))
+imgs$new.dir = dir_return
 imgs$new.name = paste0(imgs$new.dir,"/",imgs$station,"_",imgs$date,".jpg")
 
 # copy file to new location
