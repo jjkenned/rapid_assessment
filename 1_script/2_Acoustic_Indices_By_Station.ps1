@@ -22,50 +22,18 @@
   ./indices_and_concat.ps1 D:/Stud D://Thompson -time_zone_offset "10:00" -output_directory ./output
 #>
 
-#requires -version 6
-
-
-<#
-Paramaterization for application of script. 
-Get someone who knows about this to interprate why this is problematic for running generally. Should work by substituting the values below
-
-
-param(
-    [Parameter(
-        Position = 0,
-        Mandatory = $true,
-        ValueFromRemainingArguments = $true,
-        ValueFromPipeline = $true)]
-    [System.IO.DirectoryInfo[]]$input_directories,
-
-    [Parameter(
-        Mandatory = $true)]
-    [System.IO.DirectoryInfo]$output_directory,
-
-    [Parameter(
-        Mandatory = $true)]
-    [string]$time_zone_offset,
-
-    $name_filter = "*"
-
-)
-
-
-#> 
-
-
-
-
-
-
-
 
 # Parameters 
 # Directories and naming
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
-$input_directories = "C:\Users\jeremiah.kennedy\Documents\Rayrock\Check 2\SB02"
-$output_directory = "C:\Users\jeremiah.kennedy\Documents\Working\Rayrock Output\Check 2" # output directory 
+# Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
+$group = "MKVI-U06" # station to station basis at this point
+
+# set in and out directories 
+$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
+$input_directories = Get-Childitem -Path "$parent_input_dir/$group"
+$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -80,23 +48,23 @@ $ErrorActionPreference = "Stop"
 $ap_path = "C:\AP"
 $default_configs = Resolve-Path "$ap_path\ConfigFiles"
 
-# skip the loop to check how it works
-$input_directory = $input_directories
+# check how it works
+# $input_directory = $input_directories[1]
 
-# foreach ($input_directory in $input_directories) {
+foreach ($input_directory in $input_directories) {
     Write-Output "Processing $input_directory"
 
 
-    $dir_in = [System.IO.DirectoryInfo[]]$input_directory
-    $current_group = $dir_in.Name
+    $dir_in = $input_directory.FullName
+    $current_group = $input_directory.Name
     
 
-    $audio_files = Get-ChildItem -Recurse -File $input_directory -Include "*.wav"
+    $audio_files = Get-ChildItem -Recurse -File $dir_in -Include "*.wav"
     $filtered_files = $audio_files | Where-Object { $_.Name -ilike $name_filter }
 
     $counter = 0;
     # bring out of this loop as well to deal with error
-    # $file = $filtered_files[2]
+    # $file = $filtered_files[1]
 
     foreach ($file in $filtered_files) {
         $counter++
@@ -108,7 +76,7 @@ $input_directory = $input_directories
         
         # for more information on how this command works, please see:
         # https://ap.qut.ecoacoustics.info/technical/commands/analyze_long_recording.html
-        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.yml" "$output_directory/$current_group/indices/$name" --no-debug --parallel 
+        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.yml" "$output_directory/by_rec/$group/$current_group/$name" --no-debug --parallel 
 
     
     
@@ -119,8 +87,8 @@ $input_directory = $input_directories
     # for more information on how this command works, please see:
     # https://ap.qut.ecoacoustics.info/technical/commands/concatenate_index_files.html
     C:\AP\AnalysisPrograms.exe ConcatenateIndexFiles `
-        --input-data-directory "$output_directory/$current_group/indices" `
-        --output-directory "$output_directory" `
+        --input-data-directory "$output_directory/by_rec/$group/$current_group" `
+        --output-directory "$output_directory/by_night" `
         -z $time_zone_offset `
         --file-stem-name $current_group `
         --directory-filter "*.*" `
@@ -129,7 +97,7 @@ $input_directory = $input_directories
         --draw-images `
         --no-debug
 
-# }
+}
 
 Write-Output "Complete!"
 
