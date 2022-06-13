@@ -1,0 +1,365 @@
+## How to Run the Rapid Visual Scanning Script ##
+
+# Part 1 - LDFCS and Indices
+
+'1_rename_and_copy_recordings.R'
+
+Prep
+ - Create a directory that follows this pattern 'E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U01/MKVI-U01-001' 
+ - Copy files for that Transect into this directory
+ - 'E:/' is whatever directory all of the processed files will be kept in
+ - Index values will be kept in 'E:/processing/output.index.values/BIRD/2022/MKVI/MKVI-U01/MKVI-U01-001'
+ - Long duration spectrograms will then be moved to 'E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U01/'
+
+This means that The folder represented by E:/ here should contain the sub-folder 'processing', which should contain the following sub-folders:
+ - copied_recordings
+ - output.index.values
+ - Time_Lapse_Files
+
+
+
+
+Running script
+ - Install the packages listed under 'libraries' 
+ - Set directories to match the file paths you're working with and then run from lines 1 - 27 
+ - If you have copied the files into the directory already (like in 'prep') make sure that 'cop_dir' matches this directory
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+#######################################################################################
+########### Re-name files for processing in Analysis Programs script ##################
+#######################################################################################
+
+## IMPORTANT ~ READ BEFORE RUNNING Script ##
+# This script re-names files and could irreversibly change your files if done wrong
+# Make sure that you are running this script on a copy of your data
+# You can move the data manually or, provided below, use the first part of this script
+
+
+# Re-set  your script when needed
+dev.off()
+rm(list=ls())
+
+# libraries
+library(stringr)
+library(tidyverse)
+library(av)
+library(chron)
+library(seewave)
+
+
+# Specify directory where files are kept:
+
+orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
+
+cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U01" # where files are copied to and modified there
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ - Do not run script for Part 1 ~ Copy Files, if you have already copied files
+
+
+##############################
+#### Part 2 ~ Name Files######
+##############################
+
+ - Now run script from line 75-128
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+# read files
+files = data.frame(Full = list.files(cop_dir,pattern = ".wav",recursive = T,full.names = T))
+files$name = basename(files$Full)
+
+
+### comment ####
+# Make sure you use the songmeter command on your basename and not the full filename
+# The command get's confused with the full path
+
+
+
+
+
+# extract metadata
+Meta = songmeter(files$name)
+Meta$Full = files$Full # transfer full name to new DF
+Meta$name = files$name # transfer basename
+Meta$station = basename(Meta$prefix) # get rid of some dumn parent directories 
+
+# get rid of extraneous columns
+keep = c("Full","name","station","time","year","month","day","hour","min","sec")
+files = Meta[keep]
+
+
+###### Dates are frustrating ###### 
+
+# let's do it the hard way !
+file.grps = files %>% group_by(station,year,month,day) %>% mutate(group_id = cur_group_id()) # group by date
+# quick function for translating day number into night number 
+# day = night ID, hr = hour in 24 hr clock (as integer), split = when to cut off the nights from one another (usually 12...noon)
+d2n.func = function(day,hr,split){
+  
+  if (hr<split){night = day} else (night = day+1)
+  
+  return(night)
+  
+}
+
+
+
+
+# apply function accross the dataframe 
+file.grps$night.ID = mapply(d2n.func,file.grps$group_id,file.grps$hour,12) 
+
+plot(file.grps$group_id,file.grps$night.ID) # visualize to make sure it makes sense
+
+# Make new name column for renaming
+# you will need to remove some things before processing anyway if this is an SM3 set of recordings 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ - View the plot and make sure recordings increase linearly without outliers
+ - If there are outliers then  the creating of night.ID or ordinal night did not work
+ - If linear then run from 136 to 205
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+# Now we can loop through the files to rename
+# You will need to start by setting the start time you wanna use
+start.hr = 4
+start.min = 0
+start.sec = 0
+
+
+# night = unique(file.grps$night.ID)[1]
+for (night in unique(file.grps$night.ID)){
+  
+  
+  # night filter
+  night_dat = file.grps[file.grps$night.ID == night,]
+  
+  # sort by time
+  night_dat = night_dat[order(night_dat$time),]
+  
+  # loop across to rename each individually
+  # i=3
+  for (i in 1:nrow(night_dat)){
+    
+    
+    if(i==1) {
+      night_dat$hour[i]=start.hr
+      night_dat$min[i]=start.min
+      night_dat$sec[i]=start.sec 
+    } else {
+      start.time.seconds=(night_dat$hour[i-1]*60*60)+(night_dat$min[i-1]*60)+(night_dat$sec[i-1]) # get start time in seconds
+      add.time = ceiling(av_media_info(night_dat$Full[i-1])$duration) # recording duration
+      new.time.seconds = start.time.seconds + add.time # add times to see what it should start as
+      night_dat$hour[i] = floor(new.time.seconds/3600)# convert back to hours minutes seconds with NO PACKAGE BECAUSE FUCK TIME! 
+      night_dat$min[i] = floor(new.time.seconds/60)-(night_dat$hour[i]*60) # mintues 
+      night_dat$sec[i] = new.time.seconds - (night_dat$hour[i]*3600+night_dat$min[i]*60) # seconds
+      
+      # and assign dates so we dont get no problems corsssssssssing across the nightssssss
+      night_dat$year[i]=night_dat$year[1]
+      night_dat$month[i]=night_dat$month[1]
+      night_dat$day[i]=night_dat$day[1]
+      }
+    
+    
+  }
+  
+  # save as some other dataframe  
+  if (night == unique(file.grps$night.ID)[1]) {dat_out = night_dat} else (dat_out = rbind(dat_out,night_dat))
+  
+  print(paste0("complete night ",night," of ",max(unique(file.grps$night.ID)))) # nights may not line up propperly 
+  
+}
+
+
+ 
+
+# manually recreate the names based on recording times etc
+dat_out$new_name_final = paste0(dat_out$station,"_",dat_out$year,
+                                formatC(dat_out$month,width = 2,flag = 0),
+                                formatC(dat_out$day,width = 2,flag = 0),"_",
+                                formatC(dat_out$hour,width=2,flag = 0),
+                                formatC(dat_out$min,width = 2, flag = 0),
+                                formatC(dat_out$sec,width=2,flag=0),"-0700.wav")
+
+
+
+
+### SongMeter 3 Only #### 
+dat_out$new_name_final = gsub(pattern = "*_0\\+1_*",replacement = "_",dat_out$new_name_final) # SM3s can get merked 
+
+# make new full path
+dat_out$new.Full = paste0(dirname(dat_out$Full),"/",dat_out$new_name_final)
+
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ - Quickly check that the new file names make sense (sorting by different columns in the dataframe view is helpful for this) 
+ - If there are no apparent issues then run the final line of script on 209
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+file.rename(from = dat_out$Full, to = dat_out$new.Full)
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+This stept is now complete
+
+
+'2_Acoustic_Indices_By_Station.ps1'
+ - The second script should be opened in Powershell ISE x86
+ - The first line of script is 31 ($group = "MKVI-U23" # station to station basis at this point) all lines prior to do not matter
+
+
+ - Set $group to transect ID 'eg MKVI-U01' 
+ - Like the last script set 'E:\' on $parent_input_dir and $output_directory in the same way you did for the prep step in the begining. This folder should only contain 'processing' 
+ - Now Run entire script and cross your fingersc 
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+$group = "MKVI-U01" # station to station basis at this point
+
+# set in and out directories 
+$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
+$input_directories = Get-Childitem -Path "$parent_input_dir\$group"
+$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+$name_filter = "*" # name filter(kinda unsure what it means)
+$time_zone_offset = -0700
+
+
+
+# Do not continue running the script if a problem is encountered
+$ErrorActionPreference = "Stop"
+
+
+# get the path for AP.exe. When do this to resolve some nice default config files.
+# TODO: remove this when the default config file feature is implemented in AP.exe
+$ap_path = "C:\AP"
+$default_configs = Resolve-Path "$ap_path\ConfigFiles"
+
+# check how it works
+# $input_directory = $input_directories[1] # For trouble shooting
+
+foreach ($input_directory in $input_directories) {
+    Write-Output "Processing $input_directory"
+
+
+    $dir_in = $input_directory.FullName
+    $current_group = $input_directory.Name
+    
+
+    $audio_files = Get-ChildItem -Recurse -File $dir_in -Include "*.wav"
+    $filtered_files = $audio_files | Where-Object { $_.Name -ilike $name_filter }
+
+    $counter = 0;
+
+
+    # $file = $filtered_files[1] # For trouble shooting
+
+    foreach ($file in $filtered_files) {
+        $counter++
+        Write-Output "Generating indices for $file, file $counter of $($filtered_files.Count)"
+        $name = $file.Name
+
+        # make folder to keep output
+
+        
+        # for more information on how this command works, please see:
+        # https://ap.qut.ecoacoustics.info/technical/commands/analyze_long_recording.html
+        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.Short.Low.yml" "$output_directory/by_rec/$group/$current_group/$name" --no-debug --parallel 
+
+    
+    
+    }
+
+    Write-Output "Now concatenating files for $current_group"
+
+    # for more information on how this command works, please see:
+    # https://ap.qut.ecoacoustics.info/technical/commands/concatenate_index_files.html
+    C:\AP\AnalysisPrograms.exe ConcatenateIndexFiles `
+        --input-data-directory "$output_directory/by_rec/$group/$current_group" `
+        --output-directory "$output_directory/by_night/$group/$current_group" `
+        -z $time_zone_offset `
+        --file-stem-name $current_group `
+        --directory-filter "*.*" `
+        --index-properties-config "$default_configs/IndexPropertiesConfig.yml" `
+        --false-colour-spectrogram-config "$default_configs/SpectrogramFalseColourConfig.yml" `
+        --draw-images `
+        --no-debug
+
+}
+
+Write-Output "Complete!"
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+
+You have now made the index values and LDFCS
+
+'3_Bring_LDFCS_Visualizations_to_single_Folder.R' 
+ - Run this script in R or R studio 
+ - Again modify 'E:/' and 'MKVI-U01' to match folder and transect ID from part 1 
+ - Then run entire script 
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+##################################
+#### Step 1 - Combine Indices#####
+##################################
+
+
+## Required settings ##
+dir_sep = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U01" # where the files are kept
+dir_return = "E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U01" # where the combined files are to go
+
+# list in files to make into jpg
+img<-list.files(path = dir_sep,pattern = "2Maps.png",recursive = T,full.names = T)
+# img = img[file.size(img)>80000]
+
+# set file path for keeping the images in a place that can be referenced by the timelapse database
+imgs = data.frame(full.name = img) # turn into dataframe
+imgs$full.directory = dirname(imgs$full.name) # get directory for visualization
+
+imgs$date = basename(imgs$full.directory) # date for name
+imgs$station = basename(dirname(imgs$full.directory)) # station ID for reference
+
+# Make new dir name from extracted info
+imgs$new.dir = dir_return
+imgs$new.name = paste0(imgs$new.dir,"/",imgs$station,"_",imgs$date,".jpg")
+
+# copy file to new location
+for(i in 1:nrow(imgs)){
+  
+  if (!dir.exists(imgs$new.dir[i])){dir.create(imgs$new.dir[i],recursive = T)}
+  
+}
+
+file.copy(from = imgs$full.name,to = imgs$new.name,recursive = T)
+
+
+%%%%%%%%%%%%%%%%%%%%%%%%%%%%%
+
+ - Without having to create these directories on your own this script will rename files and move them to newly created directories based on each transect ID
+ - THese files can then be processed using Timelapse 
+
+
+This is step 1 completed 
+
+
+
+
+
+
+
+
+
+
