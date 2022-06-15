@@ -22,9 +22,9 @@ library(seewave)
 
 # Specify directory where files are kept:
 
-orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
+orig_dir = "P:/Bamfield Rd - 14" # where files are kept and not modified
+cop_dir = "P:/PMRA_processing/copied_recordings/BIRD/2022/MKVI/MKVI-U-14" # where files are copied to and modified there
 
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U23" # where files are copied to and modified there
 
 
 ##############################
