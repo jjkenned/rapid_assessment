@@ -19,17 +19,25 @@ library(av)
 library(chron)
 library(seewave)
 
+
+
+# Specify directory where files are kept:
+
+orig_dir = "P:/Bamfield Rd - 14" # where files are kept and not modified
+cop_dir = "P:/PMRA_processing/copied_recordings/BIRD/2022/MKVI/MKVI-U-14" # where files are copied to and modified there
+
+
+
 ##############################
 #### Part 1 ~ Copy Files######
 ##############################
 
 
 
-# Specify directory where files are kept:
+##############################
+#### Part 1 ~ Copy Files######
+##############################
 
-orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
-
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U23" # where files are copied to and modified there
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
@@ -74,11 +82,6 @@ lapply(files, FUN = function(x)
 ##############################
 #### Part 2 ~ Name Files######
 ##############################
-
-# Specify directory 
-# cop_dir = "D:/TEMP/MUCH" # where files are copied to and modified there
-
-
 
 # read files
 files = data.frame(Full = list.files(cop_dir,pattern = ".wav",recursive = T,full.names = T))
