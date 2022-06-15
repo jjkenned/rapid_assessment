@@ -1,17 +1,45 @@
 ## How to Run the Rapid Visual Scanning Script ##
 
+
+## Introduction
+- THIs repository is setup for use by Madrone. These steps are curated. If you require instructions, please reach out. 
+- The first directory 'P:\Bamfield Rd - 14\MKVI-U-14' is set as the main recording folder. Change these ID's for each transect. 
+- The following directories can be used in this script and should be in these formats: 
+
+
+P:\Bamfield Rd - 14\MKVI-U-14\MKVI-U-14-01 through P:\Bamfield Rd - 14\MKVI-U-14-11
+
+P:\Carmanah - 12\MKVI-U-12\MKVI-U-12-01 through P:\Carmanah - 12\MKVI-U-12-11
+
+P:\Franklin Camp - 11\MKVI-U-11\MKVI-U-11-01
+
+P:\Heber - 18\MKVI-U-18\MKVI-U-18-01
+
+P:\Lens ML - 15\MKVI-U-15\MKVI-U-15-01
+
+P:\Nitnat - 10\MKVI-U-10\MKVI-U-10-01 (this needs to be changed from MKVI_U10_01)
+
+P:\Pachena - 13\MKVI-U-13\MKVI-U-13-01
+
+P:\Quinsam - 16\MKVI-U-16\MKVI-U-16-01
+
+P:\Strathcona - 17\MKVI-U-17\MKVI-U-17-01
+
+ 
+
+
 # Part 1 - LDFCS and Indices
 
 '1_rename_and_copy_recordings.R'
 
 Prep
- - Create a directory that follows this pattern 'E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U01/MKVI-U01-001' 
+ - You can Create a directory that follows this pattern 'P:/PMRA_processing/copied_recordings/BIRD/2022/MKVI/MKVI-U-14/MKVI-U-14-01'
  - Copy files for that Transect into this directory
- - 'E:/' is whatever directory all of the processed files will be kept in
- - Index values will be kept in 'E:/processing/output.index.values/BIRD/2022/MKVI/MKVI-U01/MKVI-U01-001'
- - Long duration spectrograms will then be moved to 'E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U01/'
+ - You can also just ignore this and run the entire rename and copy script to do the work for you
+ - Index values will be kept in 'P:/PMRA_processing/output.index.values/BIRD/2022/MKVI/MKVI-U-14/MKVI-U-14-01'
+ - Long duration spectrograms will then be moved to 'P:/PMRA_processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U-14/MKVI-U-14-01'
 
-This means that The folder represented by E:/ here should contain the sub-folder 'processing', which should contain the following sub-folders:
+This means that The folder represented by P:/ here should contain the sub-folder 'PMRA_processing', which should contain the following sub-folders:
  - copied_recordings
  - output.index.values
  - Time_Lapse_Files
@@ -31,12 +59,6 @@ Running script
 ########### Re-name files for processing in Analysis Programs script ##################
 #######################################################################################
 
-## IMPORTANT ~ READ BEFORE RUNNING Script ##
-# This script re-names files and could irreversibly change your files if done wrong
-# Make sure that you are running this script on a copy of your data
-# You can move the data manually or, provided below, use the first part of this script
-
-
 # Re-set  your script when needed
 dev.off()
 rm(list=ls())
@@ -51,10 +73,9 @@ library(seewave)
 
 # Specify directory where files are kept:
 
-orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
+orig_dir = "P:/Bamfield Rd - 14" # where files are kept and not modified
 
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U01" # where files are copied to and modified there
-
+cop_dir = "P:/PMRA_processing/copied_recordings/BIRD/2022/MKVI/MKVI-U-14" # where files are copied to and modified there
 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
@@ -73,14 +94,6 @@ cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U01" # where file
 # read files
 files = data.frame(Full = list.files(cop_dir,pattern = ".wav",recursive = T,full.names = T))
 files$name = basename(files$Full)
-
-
-### comment ####
-# Make sure you use the songmeter command on your basename and not the full filename
-# The command get's confused with the full path
-
-
-
 
 
 # extract metadata
@@ -217,21 +230,22 @@ This stept is now complete
 
 '2_Acoustic_Indices_By_Station.ps1'
  - The second script should be opened in Powershell ISE x86
- - The first line of script is 31 ($group = "MKVI-U23" # station to station basis at this point) all lines prior to do not matter
+ - The first line of script is 31 ($group = "MKVI-U-14" # station to station basis at this point) all lines prior to do not matter
 
 
  - Set $group to transect ID 'eg MKVI-U01' 
- - Like the last script set 'E:\' on $parent_input_dir and $output_directory in the same way you did for the prep step in the begining. This folder should only contain 'processing' 
+ - Like the last script set 'P:\' on $parent_input_dir and $output_directory in the same way you did for the prep step in the begining. This folder should only contain 'PMRA_processing' 
  - Now Run entire script and cross your fingersc 
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
-$group = "MKVI-U01" # station to station basis at this point
+# Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
+$group = "MKVI-U-14" # station to station basis at this point
 
 # set in and out directories 
-$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
-$input_directories = Get-Childitem -Path "$parent_input_dir\$group"
-$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+$parent_input_dir = "P:/PMRA_processing/copied_recordings/BIRD/2022/MKVI" 
+$input_directories = Get-Childitem -Path "$parent_input_dir/$group"
+$output_directory = "P:/PMRA_processing/output.index.values/BIRD/2022/MKVI" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -242,12 +256,12 @@ $ErrorActionPreference = "Stop"
 
 
 # get the path for AP.exe. When do this to resolve some nice default config files.
-# TODO: remove this when the default config file feature is implemented in AP.exe
+
 $ap_path = "C:\AP"
 $default_configs = Resolve-Path "$ap_path\ConfigFiles"
 
 # check how it works
-# $input_directory = $input_directories[1] # For trouble shooting
+# $input_directory = $input_directories[1]
 
 foreach ($input_directory in $input_directories) {
     Write-Output "Processing $input_directory"
@@ -261,9 +275,8 @@ foreach ($input_directory in $input_directories) {
     $filtered_files = $audio_files | Where-Object { $_.Name -ilike $name_filter }
 
     $counter = 0;
-
-
-    # $file = $filtered_files[1] # For trouble shooting
+    # bring out of this loop as well to deal with error
+    # $file = $filtered_files[1]
 
     foreach ($file in $filtered_files) {
         $counter++
@@ -287,7 +300,7 @@ foreach ($input_directory in $input_directories) {
     # https://ap.qut.ecoacoustics.info/technical/commands/concatenate_index_files.html
     C:\AP\AnalysisPrograms.exe ConcatenateIndexFiles `
         --input-data-directory "$output_directory/by_rec/$group/$current_group" `
-        --output-directory "$output_directory/by_night/$group/$current_group" `
+        --output-directory "$output_directory/by_night/$group" `
         -z $time_zone_offset `
         --file-stem-name $current_group `
         --directory-filter "*.*" `
@@ -301,6 +314,8 @@ foreach ($input_directory in $input_directories) {
 Write-Output "Complete!"
 
 
+
+
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
 
@@ -308,7 +323,7 @@ You have now made the index values and LDFCS
 
 '3_Bring_LDFCS_Visualizations_to_single_Folder.R' 
  - Run this script in R or R studio 
- - Again modify 'E:/' and 'MKVI-U01' to match folder and transect ID from part 1 
+ - Again modify 'P:/' and 'MKVI-U-14' to match folder and transect ID from part 1 
  - Then run entire script 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
@@ -317,9 +332,8 @@ You have now made the index values and LDFCS
 ##################################
 
 
-## Required settings ##
-dir_sep = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U01" # where the files are kept
-dir_return = "E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U01" # where the combined files are to go
+dir_sep = "P:/PMRA_processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U-14" # where the files are kept
+dir_return = "P:/PMRA_processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U-14"  # where the combined files are to go
 
 # list in files to make into jpg
 img<-list.files(path = dir_sep,pattern = "2Maps.png",recursive = T,full.names = T)
@@ -344,7 +358,6 @@ for(i in 1:nrow(imgs)){
 }
 
 file.copy(from = imgs$full.name,to = imgs$new.name,recursive = T)
-
 
 %%%%%%%%%%%%%%%%%%%%%%%%%%%%%
 
