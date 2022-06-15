@@ -19,17 +19,18 @@ library(av)
 library(chron)
 library(seewave)
 
-##############################
-#### Part 1 ~ Copy Files######
-##############################
-
-
 
 # Specify directory where files are kept:
 
 orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
 
 cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U23" # where files are copied to and modified there
+
+
+##############################
+#### Part 1 ~ Copy Files######
+##############################
+
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}

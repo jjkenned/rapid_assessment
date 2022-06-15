@@ -17,8 +17,8 @@ library(tidyverse)
 
 
 ## Required settings ##
-dir_sep = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U22" # where the files are kept
-dir_return = "E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U22" # where the combined files are to go
+dir_sep = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U01" # where the files are kept
+dir_return = "E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U01" # where the combined files are to go
 
 # list in files to make into jpg
 img<-list.files(path = dir_sep,pattern = "2Maps.png",recursive = T,full.names = T)
