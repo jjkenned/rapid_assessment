@@ -1,4 +1,4 @@
-﻿
+
 # Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
 $group = "MKVI-U-14" # station to station basis at this point
 
@@ -72,6 +72,7 @@ foreach ($input_directory in $input_directories) {
 }
 
 Write-Output "Complete!"
+
 
 
 
