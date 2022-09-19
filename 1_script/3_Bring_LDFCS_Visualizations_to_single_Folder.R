@@ -17,8 +17,17 @@ library(tidyverse)
 
 
 ## Required settings ##
-dir_sep = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night/MKVI-U01" # where the files are kept
-dir_return = "E:/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI/MKVI-U01" # where the combined files are to go
+
+
+# pre-set transect/group
+group = "MKVI-U24"
+
+dir_sep_base = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night" # where the files are kept
+dir_return_base = "S:/ProjectScratch/398-173.07/PMRA_WESOke/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI" # where the combined files are to go
+
+
+dir_sep = paste0(dir_sep_base,"/",group) # where the files are kept
+dir_return =  paste0(dir_return_base,"/",group) # where the combined files are to go
 
 # list in files to make into jpg
 img<-list.files(path = dir_sep,pattern = "2Maps.png",recursive = T,full.names = T)
@@ -32,7 +41,7 @@ imgs$date = basename(imgs$full.directory) # date for name
 imgs$station = basename(dirname(imgs$full.directory)) # station ID for reference
 
 # Make new dir name from extracted info
-imgs$new.dir = dir_return
+imgs$new.dir = paste0(dir_return,"/",imgs$station)
 imgs$new.name = paste0(imgs$new.dir,"/",imgs$station,"_",imgs$date,".jpg")
 
 # copy file to new location
