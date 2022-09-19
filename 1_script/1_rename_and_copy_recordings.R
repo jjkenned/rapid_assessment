@@ -27,9 +27,9 @@ library(seewave)
 
 # Specify directory where files are kept:
 
-orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
+orig_dir = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Raw" # where files are kept and not modified
 
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U23" # where files are copied to and modified there
+cop_dir = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing" # where files are copied to and modified there
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
@@ -38,10 +38,20 @@ if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
 # Copy files
 files<-list.files(orig_dir,pattern = ".wav",recursive = T,full.names = T) # list
 
+# remove portions of files required (if applicable)
+
+remove.folders = c("/A/","/B/")
+
 # New directory copy function
-move_rec = function(orig_dir,cop_dir,files){
+move_rec = function(orig_dir,cop_dir,files,remove.folders){
   
   new_dir = paste0(dirname(gsub(pattern = orig_dir,replacement = cop_dir,files)),"/")
+  
+  for (folder in remove.folders) {
+    
+    new_dir = gsub(folder,"/",new_dir,ignore.case = T,fixed = T)
+    
+  }
   
   if(!dir.exists(new_dir)){dir.create(new_dir,recursive = T)}
   
@@ -50,7 +60,14 @@ move_rec = function(orig_dir,cop_dir,files){
 }
 
 lapply(files, FUN = function(x) 
-  move_rec(orig_dir = orig_dir,cop_dir = cop_dir,files = x))
+  move_rec(orig_dir = orig_dir,cop_dir = cop_dir,files = x,remove.folders = remove.folders))
+
+# Check that everything was moved and copied appropriately 
+
+files.dest<-list.files(cop_dir,pattern = ".wav",recursive = T,full.names = T) # list
+
+files[!basename(files.dest) %in% basename(files)]
+files.dest[!basename(files) %in% basename(files.dest)]
 
 
 
@@ -126,10 +143,9 @@ file.grps$night.ID = mapply(d2n.func,file.grps$group_id,file.grps$hour,12)
 
 plot(file.grps$group_id,file.grps$night.ID) # visualize to make sure it makes sense
 
-# Make new name column for renaming
-# you will need to remove some things before processing anyway if this is an SM3 set of recordings 
 
-
+# Let's order by night ID
+file.grps = file.grps %>% arrange(night.ID)
 
 
 
@@ -139,8 +155,12 @@ start.hr = 4
 start.min = 0
 start.sec = 0
 
+# decide if you want to use night or day here
+# for day, switch to group.ID
+# for night, switch to night ID
 
-# night = unique(file.grps$night.ID)[1]
+
+# night = unique(file.grps$night.ID)[260]
 for (night in unique(file.grps$night.ID)){
   
   
@@ -184,7 +204,7 @@ for (night in unique(file.grps$night.ID)){
 }
 
 
- 
+
 
 # manually recreate the names based on recording times etc
 dat_out$new_name_final = paste0(dat_out$station,"_",dat_out$year,
