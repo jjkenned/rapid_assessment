@@ -33,13 +33,13 @@ d2n.func = function(day,hr,split){
 # Set locations for source folder and destination folder 
 # you may also want to have a temporary folder 
 
-
-SourceFolder = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Raw" #where your recording files are kept
-OutputFolder = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing/spectrograms" # where saving images
-
+workDIR = "S:/ProjectScratch/398-173.07/PMRA_WESOke/Bird_Data_Raw"
+SourceFolder = "S:/ProjectScratch/398-173.07/PMRA_WESOke/Bird_Data_Raw" #where your recording files are kept
+OutputFolder = "S:/ProjectScratch/398-173.07/PMRA_WESOke/RayRock_Specs" # where saving images
+LDFCS_DB = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing/indices/processing/IndicesProcessing2.ddb"
 
 # list the files you want
-full.file = list.files(SourceFolder,recursive = T,full.names = T,pattern = "*.wav") # full file names
+full.file = list.files(SourceFolder,recursive = T,full.names = T,pattern = ".wav") # full file names
 file.name = basename(full.file)
 
 
@@ -49,8 +49,11 @@ meta$file.name = full.file
 
 #### Add selection list of files or nights #### 
 
+# connect to database
+LDFCS.res<-DBI::dbConnect(RSQLite::SQLite(), LDFCS_DB)
+
 # Reading in results from SQLite Database out of timelapse 
-night.use = tbl(LDFC.res,"DataTable") 
+night.use = tbl(LDFCS.res,"DataTable") 
 night.use = data.frame(night.use %>% select(File, Process))
 
 
@@ -123,7 +126,7 @@ meta_2 = meta_new %>% group_by(station.night) %>% mutate(night.seq = order(time)
 Interval <- 60 # x-axis length in seconds 
 
 # the following can be set specifically in the loops if need be (see other write spectrograms scrpt)
-Length=180 # total length of recording in seconds
+Length=3600 # total length of recording in seconds
 Breaks=seq(0,Length,Interval) # sequence of break locations 
 
 
@@ -131,7 +134,7 @@ Breaks=seq(0,Length,Interval) # sequence of break locations
 
 # pb <- txtProgressBar(min = 0, max = length(data), style = 3)
 
-
+setwd(workDIR)
 
 
 
@@ -204,12 +207,12 @@ for (site in unique(meta_2$prefix)){
     
         
         # 
-        recording = dat_use$file.name # Identify file name required here
+        recording = gsub(" ","\ ",dat_use$file.name,fixed = T) # Identify file name required here
         
           
           # create sox command line
           args_command = paste0(recording,
-                                " -n remix 1 rate 16k trim ", Start," ", Interval, " spectrogram -r -z 90 -x 1500 -y 1200 -o ", # -o always goes at the end
+                                " -n remix 1 rate 24k trim ", Start," ", Interval, " spectrogram -r -z 90 -x 1500 -y 1200 -o ", # -o always goes at the end
                 full.name)
           
           
@@ -251,9 +254,16 @@ for (site in unique(meta_2$prefix)){
 
 # NOw it's time to clip those nasty sox images to the right size
 
+# Now check they have all been changed
+pngs = list.files(OutputFolder,full.names = T,pattern = ".png",recursive = T)
+jpegs = list.files(OutputFolder,full.names = T,pattern = ".jpg",recursive = T)
 
 
-images = list.files("S:/ProjectScratch/398-173.07/PMRA_WESOke/Spectrograms/MKSC/raw",full.names = T,recursive = T,pattern = "*.png")
+
+
+images = list.files(OutputFolder,full.names = T,recursive = T,pattern = ".png")
+
+images = images[!gsub(".png","",images) %in% gsub(".jpg","",jpegs)]
 
 image.frame = data.frame(images)
 image.frame$size = file.info(image.frame$images)$size
@@ -280,14 +290,14 @@ for (image in image_use){
 
 for(image in images){
   
-  pic = image_read(image)
-  out = gsub(pattern = ".png",replacement = ".jpg",image)
-  image_write(pic,path = out)
+  if (file.size(image)>0){
+    pic = image_read(image)
+    out = gsub(pattern = ".png",replacement = ".jpg",image)
+    image_write(pic,path = out)
+  }
+  
   
 }
-
-
-
 
 
 
