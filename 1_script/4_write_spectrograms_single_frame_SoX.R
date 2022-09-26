@@ -204,7 +204,7 @@ for (site in unique(meta_2$prefix)){
     
         
         # 
-        recording = dat_use$file.name # Identify file name required here
+        recording = gsub(" ","\ ",dat_use$file.name) # Identify file name required here
         
           
           # create sox command line
