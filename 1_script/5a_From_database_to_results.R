@@ -97,19 +97,25 @@ SongCounts.per.min$hour = substr(SongCounts.per.min$File,18,23)
 
 
 
-SongCounts.per.hour = SongCounts.per.min %>% group_by(station,date,hour) %>% summarise( LEYE = sum(LEYE),
-                                                                                        OSFL = sum(OSFL),
-                                                                                        HOGR = sum(HOGR),
-                                                                                        PEFA = sum(PEFA),
-                                                                                        RNPH = sum(RNPH),
-                                                                                        RUBL = sum(RUBL), 
-                                                                                        SEOW = sum(SEOW),
-                                                                                        BANS = sum(BANS),
-                                                                                        BARS = sum(BARS),
-                                                                                        CONI = sum(CONI),
-                                                                                        EVGR = sum(EVGR),
-                                                                                        HASP = sum(HASP),
-                                                                                        YERA = sum(YERA))
+SongRate.per.hour = SongCounts.per.min %>% group_by(station,date,hour) %>% summarise( LEYE = 60*sum(LEYE)/n(),
+                                                                                        OSFL = 60*sum(OSFL)/n(),
+                                                                                        HOGR = 60*sum(HOGR)/n(),
+                                                                                        PEFA = 60*sum(PEFA)/n(),
+                                                                                        RNPH = 60*sum(RNPH)/n(),
+                                                                                        RUBL = 60*sum(RUBL)/n(), 
+                                                                                        SEOW = 60*sum(SEOW)/n(),
+                                                                                        BANS = 60*sum(BANS)/n(),
+                                                                                        BARS = 60*sum(BARS)/n(),
+                                                                                        CONI = 60*sum(CONI)/n(),
+                                                                                        EVGR = 60*sum(EVGR)/n(),
+                                                                                        HASP = 60*sum(HASP)/n(),
+                                                                                        YERA = 60*sum(YERA)/n(),
+                                                                                        min_per_hr = n())
+
+
+
+
+for (i in 1:nrow)
 
 
 
@@ -117,11 +123,8 @@ SongCounts.per.hour = SongCounts.per.min %>% group_by(station,date,hour) %>% sum
 
 
 
-
-
-
-
-
+# check individual records
+SongCounts.per.hour_4 = SongCounts.per.hour[SongCounts.per.hour$station=="SUBBS04",]
 
 
 
@@ -138,4 +141,5 @@ write.csv(SongCounts.per.min,file = "S:/ProjectScratch/398-173.07/PMRA_WESOke/Ra
 
 write.csv(SongCounts.per.hour,file = "S:/ProjectScratch/398-173.07/PMRA_WESOke/RayRock_Specs/results_song_counts_per_hour.csv",row.names = F)
 
+write.csv(SongRate.per.hour,file = "S:/ProjectScratch/398-173.07/PMRA_WESOke/RayRock_Specs/results_song_Rate_per_hour.csv",row.names = F)
 
