@@ -16,9 +16,9 @@ library(av)
 library(tidyverse)
 library(magick)
 library(RSQLite)
+library(dplyr)
 
 # set functions you will want to use 
-
 # use function to convert day to night ID
 d2n.func = function(day,hr,split){
   
@@ -34,8 +34,8 @@ d2n.func = function(day,hr,split){
 # you may also want to have a temporary folder 
 
 
-SourceFolder = "F:/PMRA_SAR/Recordings/BIRD/2022/REN" #where your recording files are kept
-OutputFolder =  "F:/PMRA_SAR/Processing/Timelapse_Files/RTS/BIRD/2022/REN" # where saving images
+SourceFolder = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Raw" #where your recording files are kept
+OutputFolder = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing/spectrograms" # where saving images
 
 
 # list the files you want
@@ -48,56 +48,18 @@ meta = songmeter(file.name)
 meta$file.name = full.file
 
 #### Add selection list of files or nights #### 
-LDFC.res <- DBI::dbConnect(RSQLite::SQLite(), "F:/PMRA_SAR/Processing/Timelapse_Files/LDFCS/BIRD/2022/REN/IndicesProcessing.ddb")
 
-# if you have a list of nights to process import here
+# Reading in results from SQLite Database out of timelapse 
 night.use = tbl(LDFC.res,"DataTable") 
 night.use = data.frame(night.use %>% select(File, Process))
 
-### Check if playback surveys are from the same night ##### 
 
-# if you have survey night data from playbck sessions, include it here
-playback = read_xlsx(path = "S:/Projects/106381-01/06 Data/HSP&PMRA/Playback_Surveys/2021/MKVI_2021_Visit_Data.xlsx",sheet = 1)
-
-
-# let's use these to filter our data
-playback = playback[c("Full_Station_ID","Date","Start_Time")] # playback surveys
-
-playback$or.day = yday(playback$Date) # set ordinal date values
-
-playback$hour = hour(playback$Start_Time) # get hour 
-
-playback<-playback[!is.na(playback$Full_Station_ID),] # remove nas
-
-playback = playback[c("Full_Station_ID","Date","or.day","hour")] # removed what isnt needed
-
-# get site nights for the playback sessions 
-playback$site = gsub(x = substr(playback$Full_Station_ID,1,8),pattern = "T",replacement = "U")  # site ID
-
-playback$or.night = mapply(d2n.func,playback$or.day,playback$hour,12)
-
-
-# now convert back to date
-playback$new.date = as.character(as.Date(playback$or.night,origin = "2020-12-31"))
-playback$new.date = gsub("-","",playback$new.date)
-
-dont_use = unique(playback[c("site","new.date")])
-
-##### back to filtered nights #####
-uses = night.use[night.use$Process=="x",c("station","night")]
-uses$site = substr(uses$station,1,8)
-uses = uses[c("night","site")]
-colnames(dont_use) = c("site","night")
-
-
-# moment of truth
-check = merge(uses,dont_use,by = c("site","night"))
+##### Keep nights that are required for processing #####
+uses = night.use[night.use$Process=="Process",]
+uses$station = substr(uses$File,1,7) # get station from file name
 
 
 
-
-
-### NOW  continue
 
 ## work with time carefuly 
 meta$date = paste(meta$year,formatC(meta$month,width = 2,flag = 0),formatC(meta$day,width = 2,flag = 0),sep = "-")
@@ -113,10 +75,9 @@ unique(meta$prefix) # what stations are available?
 meta$size = as.numeric(file.size(meta$file.name)) #  size of the files
 
 # Now let's see what's gonna get processed 
-night.use$or.night = yday(as.Date(as.character(substr(night.use$File,14,22)),format = "%Y%m%d"))
+uses$or.night = yday(as.Date(as.character(substr(uses$File,9,16)),format = "%Y%m%d"))
 
-uses = night.use[night.use$Process=="Process",]
-uses$station.night = paste0(uses$RelativePath,"_",uses$or.night)
+uses$station.night = paste0(uses$station,"_",uses$or.night)
 
 # convert to night ID and other for recordings
 meta$or.night = mapply(d2n.func,meta$or.day,meta$hour,12)
@@ -124,7 +85,7 @@ meta$or.night = mapply(d2n.func,meta$or.day,meta$hour,12)
 meta$station.night = paste0(meta$prefix,"_",meta$or.night)# make night ID
 
 # now filter by the chosen night IDs
-meta = meta[meta$station.night %in% uses$station.night,]
+meta_new= meta[meta$station.night %in% uses$station.night,]
 
 
 # check
@@ -132,7 +93,7 @@ meta = meta[meta$station.night %in% uses$station.night,]
 
 
 # Get file duration in seconds for looping across appropriate time frames
-meta$duration = av_media_info(meta$file.name)$duration
+meta_new$duration = av_media_info(meta_new$file.name)$duration
 
 
 
@@ -145,7 +106,7 @@ meta$duration = av_media_info(meta$file.name)$duration
 # meta = meta[meta$size>0,]
 
 # Dplyr for ordering recordings within day 
-meta_2 = meta %>% group_by(station.night) %>% mutate(night.seq = order(time)) %>% arrange(prefix,or.night,night.seq) 
+meta_2 = meta_new %>% group_by(station.night) %>% mutate(night.seq = order(time)) %>% arrange(prefix,or.night,night.seq) 
 
 # write.csv(meta_2,file = "S:/ProjectScratch/398-173.07/PMRA_WESOke/Tracking/Chosen_Nights_meta_MKVI_2021.csv",row.names = F)
 
@@ -243,7 +204,7 @@ for (site in unique(meta_2$prefix)){
     
         
         # 
-        recording = dat_use$file.name # Identify file name required here
+        recording = gsub(" ","\ ",dat_use$file.name) # Identify file name required here
         
           
           # create sox command line
