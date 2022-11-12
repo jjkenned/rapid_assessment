@@ -28,12 +28,13 @@
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
 # Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
-$group = "MKVI-U06" # station to station basis at this point
+
+$group = "recordings" # station to station basis at this point
 
 # set in and out directories 
-$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
+$parent_input_dir = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing" 
 $input_directories = Get-Childitem -Path "$parent_input_dir/$group"
-$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+$output_directory = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing/indices" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -101,6 +102,7 @@ foreach ($input_directory in $input_directories) {
 
 Write-Output "Complete!"
 
+sox
 
 
 
