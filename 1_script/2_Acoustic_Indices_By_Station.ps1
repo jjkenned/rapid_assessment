@@ -28,12 +28,12 @@
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
 # Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
-$group = "MKVI-U24" # station to station basis at this point
+$group = "MKDI-01" # station to station basis at this point
 
 # set in and out directories 
-$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
+$parent_input_dir = "D:\PMRA_SAR\Recordings\BIRD\2022\MKDI" 
 $input_directories = Get-Childitem -Path "$parent_input_dir\$group"
-$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+$output_directory = "D:\PMRA_SAR\Processing\Timelapse_files\LDFCS\BIRD\2022\MKDI" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 

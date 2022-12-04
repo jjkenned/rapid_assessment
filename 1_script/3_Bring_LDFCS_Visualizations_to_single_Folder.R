@@ -20,10 +20,10 @@ library(tidyverse)
 
 
 # pre-set transect/group
-group = "MKVI-U24"
+group = "MKDI-01"
 
-dir_sep_base = "E:/processing/output.index.values/BIRD/2022/MKVI/by_night" # where the files are kept
-dir_return_base = "S:/ProjectScratch/398-173.07/PMRA_WESOke/processing/Time_Lapse_Files/LDFCS/BIRD/2022/MKVI" # where the combined files are to go
+dir_sep_base = "D:/PMRA_SAR/Processing/Timelapse_files/LDFCS/BIRD/2022/MKDI/by_night" # where the files are kept
+dir_return_base = "D:/PMRA_SAR/Processing/Timelapse_Files/LDFCS/BIRD/2022/MKDI/Full_LDFCS" # where the combined files are to go
 
 
 dir_sep = paste0(dir_sep_base,"/",group) # where the files are kept

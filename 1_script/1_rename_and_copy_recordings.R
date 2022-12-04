@@ -20,11 +20,12 @@ library(chron)
 library(seewave)
 library(lubridate)
 
+
 # Specify directory where files are kept:
 
-orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
+orig_dir = "D:/PMRA_SAR/Recordings" # where files are kept and not modified
 
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U24" # where files are copied to and modified there
+cop_dir = "D:/PMRA_SAR/Processing" # where files are copied to and modified there
 
 
 ##############################
@@ -221,7 +222,7 @@ dat_out$new_name_final = paste0(dat_out$station,"_",dat_out$year,
 
 
 ### SongMeter 3 Only #### 
-dat_out$new_name_final = gsub(pattern = "*_0\\+1_*",replacement = "_",dat_out$new_name_final) # SM3s can get merked 
+# dat_out$new_name_final = gsub(pattern = "*_0\\+1_*",replacement = "_",dat_out$new_name_final) # SM3s can get merked 
 
 # make new full path
 dat_out$new.Full = paste0(dirname(dat_out$Full),"/",dat_out$new_name_final)
@@ -236,6 +237,7 @@ file.rename(from = dat_out$Full, to = dat_out$new.Full)
 
 
 
+  
 
 
 
