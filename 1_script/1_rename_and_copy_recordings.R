@@ -18,18 +18,19 @@ library(tidyverse)
 library(av)
 library(chron)
 library(seewave)
-
-##############################
-#### Part 1 ~ Copy Files######
-##############################
-
-
+library(lubridate)
 
 # Specify directory where files are kept:
 
 orig_dir = "E:/recordings/BIRD/2022/MKVI/MKVI-U23" # where files are kept and not modified
 
-cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U23" # where files are copied to and modified there
+cop_dir = "E:/processing/copied_recordings/BIRD/2022/MKVI/MKVI-U24" # where files are copied to and modified there
+
+
+##############################
+#### Part 1 ~ Copy Files######
+##############################
+
 
 # create directory 
 if (!dir.exists(cop_dir)){dir.create(cop_dir,recursive = T)}
@@ -89,7 +90,8 @@ files$name = basename(files$Full)
 # Make sure you use the songmeter command on your basename and not the full filename
 # The command get's confused with the full path
 
-
+# you may need to remove some from list that have already been run
+files = files[!grepl("-0700.wav",files$name,fixed = T),]
 
 
 
@@ -99,9 +101,14 @@ Meta$Full = files$Full # transfer full name to new DF
 Meta$name = files$name # transfer basename
 Meta$station = basename(Meta$prefix) # get rid of some dumn parent directories 
 
+
 # get rid of extraneous columns
 keep = c("Full","name","station","time","year","month","day","hour","min","sec")
 files = Meta[keep]
+
+
+
+
 
 
 ###### Dates are frustrating ###### 
@@ -121,6 +128,7 @@ d2n.func = function(day,hr,split){
 
 
 
+
 # apply function accross the dataframe 
 file.grps$night.ID = mapply(d2n.func,file.grps$group_id,file.grps$hour,12) 
 
@@ -129,8 +137,23 @@ plot(file.grps$group_id,file.grps$night.ID) # visualize to make sure it makes se
 # Make new name column for renaming
 # you will need to remove some things before processing anyway if this is an SM3 set of recordings 
 
+# you will need to make another time ID
+# to deal with timezone and time change issues let's just fucking convert to seconds
+# you may need to fiddle with a single year
+
+# years since
+file.grps$sec_order=NA
+for (i in 1:nrow(file.grps)){
+  
+  orday = yday(as.Date(paste0(file.grps$year[i],"-",file.grps$month[i],"-",file.grps$day[i])))
+  secs = (86400*orday) + file.grps$sec[i] + (file.grps$min[i]*60) +(file.grps$hour[i]*60*60)
+  file.grps$sec_order[i] = secs
+  
+  
+}
 
 
+plot(file.grps$sec_order,file.grps$time)
 
 
 # Now we can loop through the files to rename
@@ -148,7 +171,7 @@ for (night in unique(file.grps$night.ID)){
   night_dat = file.grps[file.grps$night.ID == night,]
   
   # sort by time
-  night_dat = night_dat[order(night_dat$time),]
+  night_dat = night_dat[order(night_dat$sec_order),]
   
   # loop across to rename each individually
   # i=3

@@ -7,12 +7,12 @@
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
 # Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
-$group = "MKVI-U04" # station to station basis at this point
+$group = "REN-01" # station to station basis at this point
 
 # set in and out directories 
-$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
+$parent_input_dir = "F:\processing\copied_recordings\BIRD\2022\REN" 
 $input_directories = Get-Childitem -Path "$parent_input_dir/$group"
-$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+$output_directory = "F:\processing\output.index.values\BIRD\2022\REN" # output directory 
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 

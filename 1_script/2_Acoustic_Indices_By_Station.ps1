@@ -28,6 +28,7 @@
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
 # Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
+<<<<<<< HEAD
 
 $group = "recordings" # station to station basis at this point
 
@@ -35,6 +36,14 @@ $group = "recordings" # station to station basis at this point
 $parent_input_dir = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing" 
 $input_directories = Get-Childitem -Path "$parent_input_dir/$group"
 $output_directory = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing/indices" # output directory 
+=======
+$group = "MKVI-U24" # station to station basis at this point
+
+# set in and out directories 
+$parent_input_dir = "E:\processing\copied_recordings\BIRD\2022\MKVI" 
+$input_directories = Get-Childitem -Path "$parent_input_dir\$group"
+$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+>>>>>>> 6e0c180ce761e2045b350b3e4e70c13710566746
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -77,7 +86,7 @@ foreach ($input_directory in $input_directories) {
         
         # for more information on how this command works, please see:
         # https://ap.qut.ecoacoustics.info/technical/commands/analyze_long_recording.html
-        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.yml" "$output_directory/by_rec/$group/$current_group/$name" --no-debug --parallel 
+        C:\AP\AnalysisPrograms.exe audio2csv $file "$default_configs/Towsey.Acoustic.Short.Low.yml" "$output_directory/by_rec/$group/$current_group/$name" --no-debug --parallel 
 
     
     
@@ -89,7 +98,7 @@ foreach ($input_directory in $input_directories) {
     # https://ap.qut.ecoacoustics.info/technical/commands/concatenate_index_files.html
     C:\AP\AnalysisPrograms.exe ConcatenateIndexFiles `
         --input-data-directory "$output_directory/by_rec/$group/$current_group" `
-        --output-directory "$output_directory/by_night" `
+        --output-directory "$output_directory/by_night/$group/$current_group" `
         -z $time_zone_offset `
         --file-stem-name $current_group `
         --directory-filter "*.*" `
