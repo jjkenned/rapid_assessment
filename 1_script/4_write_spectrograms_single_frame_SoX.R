@@ -16,17 +16,14 @@ library(av)
 library(tidyverse)
 library(magick)
 library(RSQLite)
+library(RODBC)
 
 # set functions you will want to use 
 
 # use function to convert day to night ID
-d2n.func = function(day,hr,split){
-  
-  if (hr<split){night = day} else (night = day+1)
-  
-  return(night)
-  
-}
+# day to night function
+source("S:/ProjectScratch/398-173.07/PMRA_WESOke/PMRA_SAR/Script/Functions/Day_To_Night.txt")
+
 
 
 
@@ -34,12 +31,13 @@ d2n.func = function(day,hr,split){
 # you may also want to have a temporary folder 
 
 
-SourceFolder = "F:/PMRA_SAR/Recordings/BIRD/2022/REN" #where your recording files are kept
-OutputFolder =  "F:/PMRA_SAR/Processing/Timelapse_Files/RTS/BIRD/2022/REN" # where saving images
+SourceFolder = "S:/ProjectScratch/398-173.07/PMRA_WESOke/PMRA_SAR/Recordings/BIRD/2022/MKVI/REN" #where your recording files are kept
+OutputFolder =  "S:/ProjectScratch/398-173.07/PMRA_WESOke/PMRA_SAR/Processing/Timelapse_files/RTS/BIRD/2022/MKVI/REN/raw" # where saving images
+
 
 
 # list the files you want
-full.file = list.files(SourceFolder,recursive = T,full.names = T,pattern = "*.wav") # full file names
+full.file = list.files(SourceFolder,recursive = T,full.names = T,pattern = ".wav") # full file names
 file.name = basename(full.file)
 
 
@@ -48,17 +46,42 @@ meta = songmeter(file.name)
 meta$file.name = full.file
 
 #### Add selection list of files or nights #### 
-LDFC.res <- DBI::dbConnect(RSQLite::SQLite(), "F:/PMRA_SAR/Processing/Timelapse_Files/LDFCS/BIRD/2022/REN/IndicesProcessing.ddb")
+LDFC.res <- DBI::dbConnect(RSQLite::SQLite(), "S:/ProjectScratch/398-173.07/PMRA_WESOke/PMRA_SAR/Processing/Timelapse_files/LDFCS/BIRD/2022/IndicesProcessing2.ddb")
 
 # if you have a list of nights to process import here
 night.use = tbl(LDFC.res,"DataTable") 
 night.use = data.frame(night.use %>% select(File, Process))
 
+# do you need to change the output to match new naming conventions?
+# source("S:/ProjectScratch/398-173.07/PMRA_WESOke/PMRA_SAR/Script/Functions/Update_Prefix_Name_Bird.R")
+# night.use$File.New = mapply(name.change.u2s,night.use$File)
+
+
 ### Check if playback surveys are from the same night ##### 
+# let's see what's been done for the group of files you want to work on 
+# by default it's to site
+site = basename(SourceFolder)
+
+# break name up into components for station and date
+night.use = night.use %>%
+  separate(File,c("station","date"),"_") 
+
+night.use$date = gsub(".jpg","",night.use$date)
+
+# count our station nights
+
+station.nights = night.use %>% group_by(station,Process) %>% summarise(nights = n())
+nights.process.stn = station.nights[station.nights$Process == "Process",]
+
+## if everything adds up to your desired count number, you can proceed
+
+###### OVERLAP with PB surveys ###### 
+
+
+
 
 # if you have survey night data from playbck sessions, include it here
-playback = read_xlsx(path = "S:/Projects/106381-01/06 Data/HSP&PMRA/Playback_Surveys/2021/MKVI_2021_Visit_Data.xlsx",sheet = 1)
-
+playback.db = odbcConnectAccess("S:/Projects/107182-01/06 Data/221115c_WESOke Survey Dbase.accdb")
 
 # let's use these to filter our data
 playback = playback[c("Full_Station_ID","Date","Start_Time")] # playback surveys
@@ -83,16 +106,37 @@ playback$new.date = gsub("-","",playback$new.date)
 
 dont_use = unique(playback[c("site","new.date")])
 
+
 ##### back to filtered nights #####
-uses = night.use[night.use$Process=="x",c("station","night")]
-uses$site = substr(uses$station,1,8)
-uses = uses[c("night","site")]
-colnames(dont_use) = c("site","night")
+
+# Extract metadata from file name  in night images (get from end so you don't need to deal with prefix length)
+# date from end
+
+# get Millenial date (days since start of millenium)
+get.jday = function(date){
+  
+  # pull date info 
+  yrs = as.numeric(substr(date,1,4))
+  mons = as.numeric(substr(date,5,6))
+  days = as.numeric(substr(date,7,8))
+  true.date = ymd(paste(yrs,mons,days,sep = "-")) # convert to date
+  jdays = as.numeric(true.date - ymd("2000-01-01")) # days since
+  
+  
+  return(jdays)
+  
+  
+  
+}
+
+# Apply function to all data
+night.use$j.day = mapply(get.jday,night.use$date)
 
 
-# moment of truth
-check = merge(uses,dont_use,by = c("site","night"))
-
+# Now use to process again to get just the stuff to process
+to.process = night.use[night.use$Process=="Process",] # nights selected
+to.process = to.process[substr(to.process$station,1,7)==site,] # by site
+station.effort = to.process %>% group_by(station) %>% tally() # double check station effort
 
 
 
@@ -100,10 +144,13 @@ check = merge(uses,dont_use,by = c("site","night"))
 ### NOW  continue
 
 ## work with time carefuly 
-meta$date = paste(meta$year,formatC(meta$month,width = 2,flag = 0),formatC(meta$day,width = 2,flag = 0),sep = "-")
+# extract only the numeric date
 
 
-meta$or.day = yday(as.Date(meta$date,format = "%Y-%m-%d")) # get ordinal date
+meta$date = paste0(meta$year,formatC(meta$month,width = 2,flag = 0),formatC(meta$day,width = 2,flag = 0))
+
+
+meta$j.day = mapply(get.jday,meta$date)
 
 
 
@@ -112,19 +159,21 @@ unique(meta$prefix) # what stations are available?
 
 meta$size = as.numeric(file.size(meta$file.name)) #  size of the files
 
-# Now let's see what's gonna get processed 
-night.use$or.night = yday(as.Date(as.character(substr(night.use$File,14,22)),format = "%Y%m%d"))
 
-uses = night.use[night.use$Process=="Process",]
-uses$station.night = paste0(uses$RelativePath,"_",uses$or.night)
+# 
+# # Now let's see what's gonna get processed 
+# night.use$j.night = yday(as.Date(as.character(substr(night.use$File,14,22)),format = "%Y%m%d"))
+# 
+# uses = night.use[night.use$Process=="Process",]
+to.process$station.night = paste0(to.process$station,"_",to.process$j.day)
 
 # convert to night ID and other for recordings
-meta$or.night = mapply(d2n.func,meta$or.day,meta$hour,12)
+meta$j.night = mapply(d2n.func,meta$j.day,meta$hour,12)
 
-meta$station.night = paste0(meta$prefix,"_",meta$or.night)# make night ID
+meta$station.night = paste0(meta$prefix,"_",meta$j.night)# make night ID
 
 # now filter by the chosen night IDs
-meta = meta[meta$station.night %in% uses$station.night,]
+meta_2 = meta[meta$station.night %in% to.process$station.night,]
 
 
 # check
@@ -132,7 +181,7 @@ meta = meta[meta$station.night %in% uses$station.night,]
 
 
 # Get file duration in seconds for looping across appropriate time frames
-meta$duration = av_media_info(meta$file.name)$duration
+meta_2$duration = av_media_info(meta_2$file.name)$duration
 
 
 
@@ -145,9 +194,9 @@ meta$duration = av_media_info(meta$file.name)$duration
 # meta = meta[meta$size>0,]
 
 # Dplyr for ordering recordings within day 
-meta_2 = meta %>% group_by(station.night) %>% mutate(night.seq = order(time)) %>% arrange(prefix,or.night,night.seq) 
+meta_2 = meta_2 %>% group_by(station.night) %>% mutate(night.seq = order(time)) %>% arrange(prefix,j.night,night.seq) 
 
-# write.csv(meta_2,file = "S:/ProjectScratch/398-173.07/PMRA_WESOke/Tracking/Chosen_Nights_meta_MKVI_2021.csv",row.names = F)
+# write.csv(meta_2,file = "S:/ProjectScratch/398-173.07/PMRA_WESOke/Tracking/Chosen_Nights_meta_MKSC_02_2022.csv",row.names = F)
 
 
 
@@ -184,7 +233,7 @@ for (site in unique(meta_2$prefix)){
   # Keep only appropriate site data
   dat_in = meta_2[meta_2$prefix==site,]
   
-  all_nights = unique(dat_in$or.night)
+  all_nights = unique(dat_in$j.night)
   
   # Loop through recording nights 
   # j = 1
@@ -193,10 +242,10 @@ for (site in unique(meta_2$prefix)){
     grp_night = all_nights[j]
     
     
-    dat_ret = dat_in[dat_in$or.night %in% grp_night,]
+    dat_ret = dat_in[dat_in$j.night %in% grp_night,]
     
-    print("ordinal dates")
-    print(unique(dat_ret$or.day))
+    print("Millenial dates")
+    print(unique(dat_ret$j.day))
     
     
     # Create directory for site specs
@@ -218,7 +267,7 @@ for (site in unique(meta_2$prefix)){
       
       ptm = proc.time()
       
-      # loop through 30 sec periods
+      # loop through 60 sec periods
       # k=1
       for (k in 1:(length(Breaks)-1)){
         
@@ -237,7 +286,7 @@ for (site in unique(meta_2$prefix)){
         
         name=paste(name,"png",sep = ".")
         
-        name=gsub(pattern = "_0\\+1_",replacement = "_", name) # final name
+        name=gsub(pattern = "_0//+1_",replacement = "_", name) # final name
         full.name = paste0(dir.out,name) # full name
         
     
@@ -292,7 +341,7 @@ for (site in unique(meta_2$prefix)){
 
 
 
-images = list.files("S:/ProjectScratch/398-173.07/PMRA_WESOke/Spectrograms/MKSC/raw",full.names = T,recursive = T,pattern = "*.png")
+images = list.files(OutputFolder,full.names = T,recursive = T,pattern = ".png")
 
 image.frame = data.frame(images)
 image.frame$size = file.info(image.frame$images)$size
@@ -306,7 +355,7 @@ for (image in image_use){
   pic = image_read(image)
   out = image_crop(pic,"1500x600+0+600")
   nameout = gsub(pattern = ".png",replacement = ".jpg",image)
-  nameout = gsub(pattern = "/Spectrograms/MKSC/raw",replacement = "/Spectrograms/MKSC/clipped",nameout)
+  nameout = gsub(pattern = "/raw/",replacement = "/clipped/",nameout)
   
   if (!dir.exists(dirname(nameout))){
     
@@ -317,14 +366,14 @@ for (image in image_use){
   
 }
 
-for(image in images){
-  
-  pic = image_read(image)
-  out = gsub(pattern = ".png",replacement = ".jpg",image)
-  image_write(pic,path = out)
-  
-}
-
+# for(image in images){
+#   
+#   pic = image_read(image)
+#   out = gsub(pattern = ".png",replacement = ".jpg",image)
+#   image_write(pic,path = out)
+#   
+# }
+# 
 
 
 

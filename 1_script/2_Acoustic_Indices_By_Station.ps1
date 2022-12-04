@@ -28,12 +28,30 @@
 # The character string used to define the directories may not get recognized as directories so I found a workaround
 
 # Set-Location -Path "E:\processing\copied_recordings\BIRD\2022\MKVI"
+<<<<<<< HEAD
 $group = "MKDI-01" # station to station basis at this point
+=======
+<<<<<<< HEAD
+
+$group = "recordings" # station to station basis at this point
+
+# set in and out directories 
+$parent_input_dir = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing" 
+$input_directories = Get-Childitem -Path "$parent_input_dir/$group"
+$output_directory = "//hemmera.com/Shared/ProjectScratch/106242-01 Bird and Bat Data/2022/Bird_Data_Processing/indices" # output directory 
+=======
+$group = "MKVI-U24" # station to station basis at this point
+>>>>>>> e793c5404dfc2e4a0fde1d2a90589f179f1c21f4
 
 # set in and out directories 
 $parent_input_dir = "D:\PMRA_SAR\Recordings\BIRD\2022\MKDI" 
 $input_directories = Get-Childitem -Path "$parent_input_dir\$group"
+<<<<<<< HEAD
 $output_directory = "D:\PMRA_SAR\Processing\Timelapse_files\LDFCS\BIRD\2022\MKDI" # output directory 
+=======
+$output_directory = "E:\processing\output.index.values\BIRD\2022\MKVI" # output directory 
+>>>>>>> 6e0c180ce761e2045b350b3e4e70c13710566746
+>>>>>>> e793c5404dfc2e4a0fde1d2a90589f179f1c21f4
 $name_filter = "*" # name filter(kinda unsure what it means)
 $time_zone_offset = -0700
 
@@ -101,6 +119,7 @@ foreach ($input_directory in $input_directories) {
 
 Write-Output "Complete!"
 
+sox
 
 
 
